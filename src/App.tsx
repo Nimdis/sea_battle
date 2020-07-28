@@ -1,26 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { FC, useCallback, useState } from 'react';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import { Game } from './Game'
+
+// 1. Components and components composition
+// 2. Immutability
+// 3. FP
+// 4. Unidirectional data flow
+
+const App: FC = () => {
+  return <Game />;
 }
 
 export default App;

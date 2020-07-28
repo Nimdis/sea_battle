@@ -1,0 +1,42 @@
+import React, { FC, useState } from 'react'
+
+import { InitScreen } from './screens/InitScreen'
+import { IField, ECellType, TGamePhase, TPlayerTurn } from './types'
+
+const field: IField = {
+    cells: [[
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty
+    ], [
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty
+    ], [
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty
+    ], [
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty,
+        ECellType.empty
+    ]]
+}
+
+export const Game: FC = () => {
+    const [gamePhase, setGamePhase] = useState<TGamePhase>('initialization')
+    const [playerTurn, setPlayerTurn] = useState<TPlayerTurn>('first')
+
+    switch (gamePhase) {
+        case 'initialization':
+            return <InitScreen field={field} />;
+        case 'game':
+        case 'finished':
+        default:
+            return <div>Error</div>
+    }
+};
