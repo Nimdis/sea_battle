@@ -22,8 +22,8 @@ export const InitScreen: FC<IInitScreenProps> = ({ field }) => {
             {cells.map((row, i) => (
                 <Row key={i}>
                     {row.map((col, j) => (
-                        <Cell key={`${i}-${j}`} /> 
-                    ))}
+                        <Cell key={`${i}-${j}`}>{col}</Cell>        
+                     ))}
                 </Row>
             ))}
         </Field>
