@@ -1,7 +1,8 @@
 import React, { FC, useState } from 'react'
 
 import { InitScreen } from './screens/InitScreen'
-import { IField, ECellType, TGamePhase, TPlayerTurn } from './types'
+import { TGamePhase, TPlayerTurn } from './types'
+import { ECellType, IField } from './entities/field'
 
 const field: IField = {
     cells: [[

@@ -4,7 +4,7 @@ import styled from 'styled-components'
 
 import { Field } from '../components/Field'
 import { Cell } from '../components/Cell'
-import { IField } from '../types'
+import { IField } from '../entities/field'
 
 const Row = styled.div`
 display: flex;
