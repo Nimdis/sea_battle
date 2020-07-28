@@ -28,6 +28,10 @@ const field: IField = {
     ]]
 }
 
+// useState Field + заполнение
+// размещение кораблей
+// проставление после клика в стейт
+
 export const Game: FC = () => {
     const [gamePhase, setGamePhase] = useState<TGamePhase>('initialization')
     const [playerTurn, setPlayerTurn] = useState<TPlayerTurn>('first')
