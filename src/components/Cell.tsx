@@ -1,7 +1,6 @@
 import React, { FC } from 'react'
 
 export const Cell: FC = (key) => {
-    console.log(key.children)
     switch(key.children){
         case 0:
             return (<div>O</div>)
@@ -16,3 +15,7 @@ export const Cell: FC = (key) => {
         <div>X</div>
     )
 };
+
+
+  
+
