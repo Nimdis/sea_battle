@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback } from 'react'
+import React, { FC, useState, useCallback, useEffect } from 'react'
 
 import styled from 'styled-components'
 
@@ -57,6 +57,14 @@ export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
     const handleMouseOver = useCallback((i: number, j: number) => () => {
       // TODO
       // change field with onFieldChange
+    }, [])
+
+    useEffect(() => {
+      document.addEventListener('keypress', e => {
+          if (e.keyCode === 32) {
+              console.log('here')
+          }
+      })
     }, [])
 
     // TODO
