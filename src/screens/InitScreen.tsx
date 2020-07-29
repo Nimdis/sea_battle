@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useCallback } from 'react'
 
 import styled from 'styled-components'
 
@@ -9,36 +9,71 @@ import { IField } from '../entities/field'
 const Row = styled.div`
 display: flex;
 `
-/*const useMouse = (event : any) => {
-    const [state, setState] = useState({id : 0})
-  
-    const mouseOver = (e : any) => {
-      setState(state => ({...state, id: e.relatedTarget}))
-    }
-    return {
-      id: state.id,
-      mouseOver,
-    }
-  }*/
 
-
- 
+type TPosition = {
+    i: number
+    j: number
+}
 
 export interface IInitScreenProps {
     field: IField
+    onFieldChange: (field: IField) => void
 }
 
-export const InitScreen: FC<IInitScreenProps> = ({ field }) => {
-    //const {x, y, mouseMove} = useMouse()
+enum EShip {
+    one,
+    two,
+    three,
+    four
+}
+
+type IShipsState = Record<EShip, {
+    count: number
+    placedShips: TPosition[]
+}>
+
+interface ICurrentShip {
+    position?: TPosition
+    type: EShip
+}
+
+const MAX_COUNT_BY_SHIP_TYPE = {
+  [EShip.four]: 1,
+  [EShip.three]: 2,
+  [EShip.two]: 3,
+  [EShip.one]: 4,
+}
+
+export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
     const { cells } = field
+    const [shipsState, setShipsState] = useState<IShipsState>();
+    const [currentShip, setCurrentShip] = useState<ICurrentShip>({
+      position: undefined,
+      type: EShip.four
+    });
+
+    const [prevPostion, setPrevPosition] = useState<TPosition>()
+
+    const handleMouseOver = useCallback((i: number, j: number) => () => {
+      // TODO
+      // change field with onFieldChange
+    }, [])
+
+    // TODO
+    // space pressed
+    // click
 
 
     return (
         <Field>
             {cells.map((row, i) => (
                 <Row key={i}>
-                    {row.map((col, j) => (
-                        <Cell key={`${i}-${j}`}>{col}</Cell>
+                    {row.map((type, j) => (
+                        <Cell
+                          type={type}
+                          key={`${i}-${j}`}
+                          onMouseOver={handleMouseOver(i, j)}
+                          />
                      ))}
                 </Row>
             ))}
