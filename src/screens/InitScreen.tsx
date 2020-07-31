@@ -4,7 +4,9 @@ import styled from 'styled-components'
 
 import { Field } from '../components/Field'
 import { Cell } from '../components/Cell'
-import { IField } from '../entities/field'
+import { IField, ECellType } from '../entities/field'
+import { cloneDeepWith, cloneDeep } from "lodash"
+import { Console } from 'console'
 
 const Row = styled.div`
 display: flex;
@@ -45,7 +47,8 @@ const MAX_COUNT_BY_SHIP_TYPE = {
 }
 
 export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
-    const { cells } = field
+    console.log("rerender")
+    const [cells, setCells] = useState<ECellType[][]>(field.cells)
     const [shipsState, setShipsState] = useState<IShipsState>();
     const [currentShip, setCurrentShip] = useState<ICurrentShip>({
       position: undefined,
@@ -55,8 +58,23 @@ export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
     const [prevPostion, setPrevPosition] = useState<TPosition>()
 
     const handleMouseOver = useCallback((i: number, j: number) => () => {
+        onFieldChange(cloneDeepWith({cells: cells}, (value : IField) => {
+            const a : IField = cloneDeep(value)
+            //a.cells[i][j] = ECellType.withShip
+            return a
+        }))
+        
       // TODO
       // change field with onFieldChange
+    }, [])
+
+    const handleOnClick = useCallback((i: number, j: number) => () => {
+        onFieldChange(cloneDeepWith({cells: cells}, (value : IField) => {
+            const a : IField = cloneDeep(value)
+            a.cells[i][j] = ECellType.withShip
+            setCells(a.cells)
+            return a
+        }))
     }, [])
 
     useEffect(() => {
@@ -74,13 +92,14 @@ export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
 
     return (
         <Field>
-            {cells.map((row, i) => (
+            {field.cells.map((row, i) => (
                 <Row key={i}>
                     {row.map((type, j) => (
                         <Cell
                           type={type}
                           key={`${i}-${j}`}
                           onMouseOver={handleMouseOver(i, j)}
+                          onClick={handleOnClick(i, j)}
                           />
                      ))}
                 </Row>

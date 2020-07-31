@@ -5,25 +5,26 @@ import { ECellType } from '../entities/field'
 export interface ICellProps {
     type: ECellType;
     onMouseOver: (e: MouseEvent<HTMLDivElement>) => void;
+    onClick: (e: MouseEvent<HTMLDivElement>) => void;
 }
 
 const getSym = (type: ECellType) => {
     switch(type){
         case ECellType.empty:
             return 'O'
-        case ECellType.hitted:
+        case ECellType.withShip:
             return 'X'
         case ECellType.missed:
             return 'Y'
-        case ECellType.withShip:
+        case ECellType.hitted:
             return 'Z'
         default:
             return 'O'
     }
 }
 
-export const Cell: FC<ICellProps> = ({ type, onMouseOver }) => {
-    return <div onMouseOver={onMouseOver}>{getSym(type)}</div>
+export const Cell: FC<ICellProps> = ({ type, onMouseOver, onClick }) => {
+    return <div onClick={onClick} onMouseOver={onMouseOver}>{getSym(type)}</div>
 };
 
 
