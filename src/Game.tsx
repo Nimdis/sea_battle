@@ -24,7 +24,7 @@ export const Game: FC = () => {
     const handleFieldChang = useCallback((field: IField) => {
       setField(field)
     }, []);
-
+    
     switch (gamePhase) {
         case 'initialization':
             return <InitScreen onFieldChange={handleFieldChang} field={field}/>
