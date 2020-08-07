@@ -134,16 +134,21 @@ export const InitScreen: FC<IInitScreenProps> = ({ field, onFieldChange }) => {
     }, [currentShip])
 
     useEffect(() => {
-        document.addEventListener('keypress', e => {
-          if (e.keyCode === 32){
-            setCurrentShip(cloneDeepWith(currentShip, (value : ICurrentShip) => {
-                const a : ICurrentShip = cloneDeep(value)
-                a.rotation.i = 1 - a.rotation.i
-                a.rotation.j = 1 - a.rotation.j
-                return a
-            }))
-          }
-      })
+        const listener = (e : any) => {
+            if (e.keyCode === 32){
+              setCurrentShip(cloneDeepWith(currentShip, (value : ICurrentShip) => {
+                  const a : ICurrentShip = cloneDeep(value)
+                  a.rotation.i = 1 - a.rotation.i
+                  a.rotation.j = 1 - a.rotation.j
+                  return a
+              }))
+            }
+        }
+        //document.removeEventListener('keypress', listener)
+        document.addEventListener('keypress', listener)
+        return () => {
+            document.removeEventListener('keypress', listener)
+        };
     }, [currentShip])
 
     // TODO
