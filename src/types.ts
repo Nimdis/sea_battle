@@ -1,6 +1,5 @@
 import { IField } from './entities/field'
 
-export type TGamePhase = 'initialization' | 'game' | 'finished';
 export type TPlayerTurn = 'first' | 'second'
 
 export interface IGameState {
