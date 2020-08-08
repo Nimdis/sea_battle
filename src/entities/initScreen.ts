@@ -1,16 +1,15 @@
-import { observable, action } from 'mobx'
-import { FieldStore } from './field'
 import { CellsStore, ECellType, TCells } from './CellsStore'
-import { Field } from '../components/Field'
 
 export type TPosition = {
     i: number
     j: number
 }
 
-type TRotation {
-    i: 0 | 1
-    j: 0 | 1
+type TRotationUnit = 0 | 1
+
+type TRotation = {
+    i: TRotationUnit
+    j: TRotationUnit
 }
 
 export type TShipSize = 1 | 2 | 3 | 4
@@ -21,80 +20,83 @@ export interface ICurrentShip {
     rotation: TPosition
 }
 
-const i = 0
-const j = 0
-
 const MAX_COUNT_BY_SHIP_TYPE = {
-  4: 1,
-  3: 2,
-  2: 3,
-  1: 4,
+    4: 1,
+    3: 2,
+    2: 3,
+    1: 4,
 }
 
 class ShipManager {
-    fieldCanvas: FieldCanvas
-    currentShip?: Ship
-    prevShip?: Ship
+    private fieldCanvas: FieldCanvas
+    private currentShip?: Ship
+    private prevShip?: Ship
 
     constructor(cells: TCells) {
         this.fieldCanvas = new FieldCanvas(cells)
     }
 
-    createShipByPosition(i: number, j: number) {
+    getCells() {
+        return this.fieldCanvas.getCells()
+    }
 
+    upsertShipByPosition(i: number, j: number) {
+        if (this.currentShip) {
+            return this.updateCurrentShipPostion(i, j)
+        }
+        this.createShipByPosition(i, j)
+    }
+
+    createShipByPosition(i: number, j: number) {
+        const shipDescr: IShip = {
+            num: 1,
+            position: {
+                i, j
+            },
+            rotation: {
+                i: 1,
+                j: 0
+            },
+            size: 4
+        };
+
+        if (this.prevShip) {
+            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] >= this.prevShip.num) {
+                shipDescr.size -= 1
+                shipDescr.num = 1
+                return
+            } else {
+                shipDescr.num += 1
+            }
+        }
+
+        this.currentShip = new Ship(shipDescr)
+        this.drawShip(this.currentShip)
     }
 
     deleteCurrentShip() {
+        this.currentShip = undefined
+        this.fieldCanvas.cleanUpCells()
+    }
 
+    updateCurrentShipPostion(i: number, j: number) {
+        if (this.currentShip) {
+            this.currentShip.position = { i, j }
+            this.drawShip(this.currentShip)
+        }
     }
 
     addShipByPostion(i: number, j: number) {
-
+        this.prevShip = this.currentShip
+        this.createShipByPosition(i, j)
+        this.fieldCanvas.updateInitialCells()
+        this.drawShip(this.currentShip!)
     }
 
-    updateShipSizeAndNumber() {
-        if (this.lastShipSize) {
-            if (MAX_COUNT_BY_SHIP_TYPE[this.lastShipSize] >= this.shipNumber) {
-                this.lastShipSize -= 1
-                this.shipNumber = 0
-                return
-            }
-            this.shipNumber += 1
-            return
-        }
-        this.lastShipSize = 4
-    }
-
-    placeCurrentShipByPosition() {
-        this.currentShip = {
-            position: { i, j },
-            size: this.lastShipSize!,
-            rotation: {
-                i: 1,
-                j: 0
-            }
-        }
-        this.drawShip()
-    }
-
-    addNextShipByPosition(i: number, j: number) {
-        this.updateShipSizeAndNumber()
-        this.currentShip = {
-            position: { i, j },
-            size: this.lastShipSize!,
-            rotation: {
-                i: 1,
-                j: 0
-            }
-        }
-        this.drawShip()
-    }
-
-    rotateShip() {
+    rotateCurrentShip() {
         if (this.currentShip) {
-            this.currentShip.rotation.i = 1 - this.currentShip.rotation.i
-            this.currentShip.rotation.j = 1 - this.currentShip.rotation.j
-            this.drawShip()
+            this.currentShip.rotate()
+            this.drawShip(this.currentShip)
         }
     }
 
@@ -139,10 +141,21 @@ class FieldCanvas extends CellsStore {
         this.initialCells = cells
     }
 
+    updateInitialCells() {
+        this.initialCells = this.getCells()
+    }
+
     cleanUpCells() {
         this.setCells(this.initialCells)
     }
 
+}
+
+interface IShip {
+    size: TShipSize,
+    position: TPosition,
+    rotation: TRotation,
+    num: number
 }
 
 class Ship {
@@ -151,16 +164,16 @@ class Ship {
     rotation: TRotation
     num: number
 
-    constructor({ size, position, rotation, num }: {
-        size: TShipSize, 
-        position: TPosition, 
-        rotation: TRotation, 
-        num: number
-    }) {
+    constructor({ size, position, rotation, num }: IShip) {
         this.size = size
         this.position = position
         this.rotation = rotation
         this.num = num
+    }
+
+    rotate() {
+        this.rotation.i = (1 - this.rotation.i) as TRotationUnit
+        this.rotation.j = (1 - this.rotation.j) as TRotationUnit
     }
 }
 
@@ -169,7 +182,7 @@ class Ship {
 // 3. Mouse leave = delete current ship
 
 export class InitScreenStore {
-    shipManager: ShipManager
+    private shipManager: ShipManager
 
     constructor(cells: TCells) {
         this.shipManager = new ShipManager(cells)
@@ -186,8 +199,23 @@ export class InitScreenStore {
     //     return false
     // }
 
+    getCells() {
+        return this.shipManager.getCells()
+    }
+
     handleMouseOver(i: number, j: number) {
-        this.cleanUpCells()
-        this.addNextShipByPosition(i, j);
+        this.shipManager.upsertShipByPosition(i, j)
+    }
+
+    handleMouseLeave() {
+        this.shipManager.deleteCurrentShip()
+    }
+
+    handleClick(i: number, j: number) {
+        this.shipManager.addShipByPostion(i, j)
+    }
+
+    handleRotate() {
+        this.shipManager.rotateCurrentShip()
     }
 }
