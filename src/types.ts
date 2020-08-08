@@ -1,10 +1,10 @@
-import { IField } from './entities/field'
+import { EField } from './entities/field'
 
 export type TPlayerTurn = 'first' | 'second'
 
 export interface IGameState {
-    gamePharse: TGamePhase
+    //gamePharse: TGamePhase
     playerTurn: TPlayerTurn
-    firstPlayerField: IField
-    secondPlayerField: IField
+    firstPlayerField: EField
+    secondPlayerField: EField
 }

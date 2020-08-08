@@ -2,9 +2,6 @@ import cloneDeep from 'lodash/fp/cloneDeep'
 import range from 'lodash/fp/range'
 import { observable, action } from 'mobx';
 
-export interface IField {
-    cells: ECellType[][]
-}
 
 export enum ECellType {
     empty,
@@ -13,9 +10,9 @@ export enum ECellType {
     hitted
 }
 
-export class Field {
+export class EField {
     static makeInitialField() {
-        return new Field(range(0, 10).map(() =>
+        return new EField(range(0, 10).map(() =>
             range(0, 10).map(() => ECellType.empty)
         ));
     }
@@ -39,9 +36,14 @@ export class Field {
         return this.cells;
     }
 
-    clone() {
-        return new Field(cloneDeep(this.getCells()))
+    setCells(cells: ECellType[][]){
+        this.cells = cells
     }
+
+    clone() {
+        return new EField(cloneDeep(this.getCells()))
+    }
+
 }
 
-export const field = Field.makeInitialField()
+export const field = EField.makeInitialField()

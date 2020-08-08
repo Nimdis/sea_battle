@@ -3,7 +3,7 @@ import { useObserver } from 'mobx-react-lite'
 
 import range from 'lodash/fp/range'
 
-// import { InitScreen } from './screens/InitScreen'
+import { InitScreen } from './screens/InitScreen'
 // import { TGamePhase, TPlayerTurn } from './types'
 import { field } from './entities/field'
 import { game } from './entities/game'
@@ -16,7 +16,7 @@ export const Game: FC = () => {
     return useObserver(() => {
         switch (game.getPhase()) {
             case 'initialization':
-                return <InitScreen />
+                return <InitScreen field={field}/>
             case 'game':
             case 'finished':
             default:
