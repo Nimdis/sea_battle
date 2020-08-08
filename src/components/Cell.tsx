@@ -1,6 +1,6 @@
 import React, { FC, MouseEvent } from 'react'
 
-import { ECellType } from '../entities/field'
+import { ECellType } from '../entities/CellsStore'
 
 export interface ICellProps {
     type: ECellType;

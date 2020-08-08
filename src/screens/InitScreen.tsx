@@ -1,57 +1,40 @@
 import React, { FC, useState, useCallback, useEffect } from 'react'
 
 import styled from 'styled-components'
+import { useObserver } from 'mobx-react-lite'
 
 import { Field } from '../components/Field'
 import { Cell } from '../components/Cell'
-import { EField, ECellType } from '../entities/field'
-import { cloneDeepWith, cloneDeep, isUndefined } from "lodash"
-import { EShip, TPosition, EInitScreen } from '../entities/initScreen'
+import { TShipSize, TPosition, InitScreenStore } from '../entities/initScreen'
+import { field } from '../entities/field'
 
 const Row = styled.div`
 display: flex;
 `
 
 
-export interface IInitScreenProps {
-    field: EField
-}
-
-
-type IShipsState = Record<EShip, {
+type IShipsState = Record<TShipSize, {
     count: number
     placedShips: TPosition[]
 }>
 
 
-const MAX_COUNT_BY_SHIP_TYPE = {
-  [EShip.four]: 1,
-  [EShip.three]: 2,
-  [EShip.two]: 3,
-  [EShip.one]: 4,
-}
-
-export const InitScreen: FC<IInitScreenProps> = ({ field }) => {
+export const InitScreen: FC = () => {
     console.log("rerender")
 
-    const [prevPostion, setPrevPosition] = useState<TPosition>()
-    const [initScreen] = useState(new EInitScreen(field))
+    const [initScreen] = useState(new InitScreenStore(field.cloneCells()))
 
 
     const handleMouseOver = useCallback((i: number, j: number) => () => {
-        initScreen.setCurrentShipPosition(i, j)
-        initScreen.tempField = field.clone();
-        initScreen.addCurrentShip()
-      // TODO
-      // change field with onFieldChange
+        initScreen.handleMouseOver(i, j)
     }, [initScreen])
 
     const handleClick = useCallback((i: number, j: number) => () => {
-        field.setCells(initScreen.tempField.clone().getCells())
+        field.setCells(initScreen.getCells())
 
         initScreen.currentShip.num += 1;
-        if(initScreen.currentShip.num >= MAX_COUNT_BY_SHIP_TYPE[initScreen.currentShip.type]){
-            initScreen.currentShip.type -= 1;
+        if(initScreen.currentShip.num >= MAX_COUNT_BY_SHIP_TYPE[initScreen.currentShip.size]){
+            initScreen.currentShip.size -= 1;
             initScreen.currentShip.num = 0;
         }
         
@@ -75,9 +58,9 @@ export const InitScreen: FC<IInitScreenProps> = ({ field }) => {
     // click
 
 
-    return (
+    return useObserver(() => (
         <Field>
-            {initScreen.tempField.getCells().map((row, i) => (
+            {initScreen.getCells().map((row, i) => (
                 <Row key={i}>
                     {row.map((type, j) => (
                         <Cell
@@ -90,5 +73,5 @@ export const InitScreen: FC<IInitScreenProps> = ({ field }) => {
                 </Row>
             ))}
         </Field>
-    );
+    ));
 };

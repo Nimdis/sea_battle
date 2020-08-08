@@ -2,7 +2,7 @@ import { observable, action } from 'mobx'
 
 export type TGamePhase = 'initialization' | 'game' | 'finished';
 
-export class Game {
+export class GameStore {
     @observable private phase: TGamePhase 
 
     constructor(phase: TGamePhase) {
@@ -19,4 +19,4 @@ export class Game {
     }
 }
 
-export const game = new Game('initialization')
+export const game = new GameStore('initialization')

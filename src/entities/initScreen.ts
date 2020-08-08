@@ -1,92 +1,193 @@
 import { observable, action } from 'mobx'
-import { EField, ECellType } from './field'
+import { FieldStore } from './field'
+import { CellsStore, ECellType, TCells } from './CellsStore'
+import { Field } from '../components/Field'
 
 export type TPosition = {
     i: number
     j: number
 }
 
-export enum EShip {
-    one,
-    two,
-    three,
-    four
+type TRotation {
+    i: 0 | 1
+    j: 0 | 1
 }
+
+export type TShipSize = 1 | 2 | 3 | 4
 
 export interface ICurrentShip {
     position?: TPosition
-    type: EShip
+    size: TShipSize
     rotation: TPosition
-    num: number
 }
 
+const i = 0
+const j = 0
 
-export class EInitScreen {
-    @observable tempField: EField
-    currentShip: ICurrentShip = {
-        position: undefined,
-        type: EShip.four,
-        rotation: {
-            i: 1,
-            j: 0
-          },
-        num: 0
+const MAX_COUNT_BY_SHIP_TYPE = {
+  4: 1,
+  3: 2,
+  2: 3,
+  1: 4,
+}
+
+class ShipManager {
+    fieldCanvas: FieldCanvas
+    currentShip?: Ship
+    prevShip?: Ship
+
+    constructor(cells: TCells) {
+        this.fieldCanvas = new FieldCanvas(cells)
     }
 
-    constructor(field: EField) {
-        this.tempField = field.clone()
+    createShipByPosition(i: number, j: number) {
+
     }
 
-    private testFree(filed : EField, point : TPosition) : boolean{
-        for(let i = point.i==0?0:-1; i < 2-Math.floor(point.i/9); i++){
-            for(let j = point.i==0?0:-1; j < 2-Math.floor(point.i/9); j++){
-                if(filed.getCell(point.i + i, point.j + j) == ECellType.withShip){
-                    return true
-                }
+    deleteCurrentShip() {
+
+    }
+
+    addShipByPostion(i: number, j: number) {
+
+    }
+
+    updateShipSizeAndNumber() {
+        if (this.lastShipSize) {
+            if (MAX_COUNT_BY_SHIP_TYPE[this.lastShipSize] >= this.shipNumber) {
+                this.lastShipSize -= 1
+                this.shipNumber = 0
+                return
+            }
+            this.shipNumber += 1
+            return
+        }
+        this.lastShipSize = 4
+    }
+
+    placeCurrentShipByPosition() {
+        this.currentShip = {
+            position: { i, j },
+            size: this.lastShipSize!,
+            rotation: {
+                i: 1,
+                j: 0
             }
         }
-        return false
+        this.drawShip()
     }
 
-    addCurrentShip() : void{
-        if(this.currentShip.position != undefined){ 
-            const axis : TPosition = {i: this.currentShip.rotation.i,
-                                      j: this.currentShip.rotation.j}
-            const i : number = this.currentShip.position.i
-            const j : number = this.currentShip.position.j
-            const minPoint : number = 0
-            const maxPoint : number = this.currentShip.type
-            for(let k = minPoint; k <= maxPoint; k++){
-                const currentPoint : TPosition = {
-                    i: 0,
-                    j: 0
-                }
-                if(k + axis.i*i > 9 || k + axis.j*j > 9){
-                    currentPoint.i = axis.j * i + axis.i * (9 - k + minPoint)
-                    currentPoint.j = (9 - k + minPoint) * axis.j + j * axis.i
-                    this.tempField.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-                }else if(k + axis.i < 0 || k + axis.j < 0){
-                    currentPoint.i = i * axis.j + axis.i * (Math.abs(k) + maxPoint)
-                    currentPoint.j = (Math.abs(k) + maxPoint) * axis.j + axis.i * j
-                    this.tempField.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-                }else{
-                    currentPoint.i = i + k * axis.i
-                    currentPoint.j = j + k * axis.j
-                    this.tempField.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-                }
+    addNextShipByPosition(i: number, j: number) {
+        this.updateShipSizeAndNumber()
+        this.currentShip = {
+            position: { i, j },
+            size: this.lastShipSize!,
+            rotation: {
+                i: 1,
+                j: 0
+            }
+        }
+        this.drawShip()
+    }
+
+    rotateShip() {
+        if (this.currentShip) {
+            this.currentShip.rotation.i = 1 - this.currentShip.rotation.i
+            this.currentShip.rotation.j = 1 - this.currentShip.rotation.j
+            this.drawShip()
+        }
+    }
+
+    private drawShip(ship: Ship) {
+        if (!this.currentShip) {
+            return
+        }
+        const { size, rotation, position } = this.currentShip!
+        if (!position) {
+            return
+        }
+        const { i, j } = position;
+        const minPoint: number = 0
+        const maxPoint: number = size
+        for (let k = minPoint; k <= maxPoint; k++) {
+            const currentPoint: TPosition = {
+                i: 0,
+                j: 0
+            }
+            if (k + rotation.i * i > 9 || k + rotation.j * j > 9) {
+                currentPoint.i = rotation.j * i + rotation.i * (9 - k + minPoint)
+                currentPoint.j = (9 - k + minPoint) * rotation.j + j * rotation.i
+                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
+            } else if (k + rotation.i < 0 || k + rotation.j < 0) {
+                currentPoint.i = i * rotation.j + rotation.i * (Math.abs(k) + maxPoint)
+                currentPoint.j = (Math.abs(k) + maxPoint) * rotation.j + rotation.i * j
+                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
+            } else {
+                currentPoint.i = i + k * rotation.i
+                currentPoint.j = j + k * rotation.j
+                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
             }
         }
     }
+}
 
-    inverseRotation() : void{
-        this.currentShip.rotation.i = 1 - this.currentShip.rotation.i
-        this.currentShip.rotation.j = 1 - this.currentShip.rotation.j
+class FieldCanvas extends CellsStore {
+    initialCells: TCells
+
+    constructor(cells: TCells) {
+        super(cells)
+        this.initialCells = cells
     }
 
-    setCurrentShipPosition(i: number, j: number){
-        this.currentShip.position = {
-            i: i,
-            j: j
-        }
+    cleanUpCells() {
+        this.setCells(this.initialCells)
+    }
+
+}
+
+class Ship {
+    position: TPosition
+    size: TShipSize
+    rotation: TRotation
+    num: number
+
+    constructor({ size, position, rotation, num }: {
+        size: TShipSize, 
+        position: TPosition, 
+        rotation: TRotation, 
+        num: number
+    }) {
+        this.size = size
+        this.position = position
+        this.rotation = rotation
+        this.num = num
+    }
+}
+
+// 1. Mouse in = create current ship + place it
+// 2. Move over = change current ship position + redraw
+// 3. Mouse leave = delete current ship
+
+export class InitScreenStore {
+    shipManager: ShipManager
+
+    constructor(cells: TCells) {
+        this.shipManager = new ShipManager(cells)
+    }
+
+    // private testFree(filed: FieldStore, point: TPosition): boolean {
+    //     for (let i = point.i == 0 ? 0 : -1; i < 2 - Math.floor(point.i / 9); i++) {
+    //         for (let j = point.i == 0 ? 0 : -1; j < 2 - Math.floor(point.i / 9); j++) {
+    //             if (filed.getCell(point.i + i, point.j + j) == ECellType.withShip) {
+    //                 return true
+    //             }
+    //         }
+    //     }
+    //     return false
+    // }
+
+    handleMouseOver(i: number, j: number) {
+        this.cleanUpCells()
+        this.addNextShipByPosition(i, j);
     }
 }
