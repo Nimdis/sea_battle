@@ -25,6 +25,10 @@ export const InitScreen: FC = () => {
         initScreen.handleClick(i, j)
     }, [initScreen])
 
+    const handleMouseLeave = useCallback(() => () => {
+        initScreen.handleMouseLeave()
+    }, [initScreen])
+
     useEffect(() => {
         const listener = (e: any) => {
             if (e.keyCode === 32) {
@@ -52,6 +56,7 @@ export const InitScreen: FC = () => {
                             key={`${i}-${j}`}
                             onMouseOver={handleMouseOver(i, j)}
                             onClick={handleClick(i, j)}
+                            onMouseLeave={handleMouseLeave()}
                         />
                     ))}
                 </Row>

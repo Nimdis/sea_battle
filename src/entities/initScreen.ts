@@ -1,4 +1,5 @@
 import { CellsStore, ECellType, TCells } from './CellsStore'
+import { cloneDeep } from "lodash"
 
 export type TPosition = {
     i: number
@@ -49,7 +50,7 @@ class ShipManager {
 
     createShipByPosition(i: number, j: number) {
         const shipDescr: IShip = {
-            num: 1,
+            num: this.prevShip ? this.prevShip.num : 1,
             position: {
                 i, j
             },
@@ -57,25 +58,27 @@ class ShipManager {
                 i: 1,
                 j: 0
             },
-            size: 4
+            size: this.prevShip ? this.prevShip.size : 4
         };
 
         if (this.prevShip) {
-            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] >= this.prevShip.num) {
+            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] == this.prevShip.num) {
                 shipDescr.size -= 1
                 shipDescr.num = 1
-                return
+                //return
             } else {
                 shipDescr.num += 1
             }
         }
-
+        console.log(shipDescr.size)
         this.currentShip = new Ship(shipDescr)
-        this.drawShip(this.currentShip)
+        //this.drawShip(this.currentShip)
     }
 
     deleteCurrentShip() {
-        this.currentShip = undefined
+        if(this.currentShip){
+            this.currentShip.position = undefined
+        }
         this.fieldCanvas.cleanUpCells()
     }
 
@@ -87,17 +90,31 @@ class ShipManager {
     }
 
     addShipByPostion(i: number, j: number) {
-        this.prevShip = this.currentShip
-        this.createShipByPosition(i, j)
-        this.fieldCanvas.updateInitialCells()
-        this.drawShip(this.currentShip!)
+        if(this.currentShip && this.currentShip.isCanPlace){
+            this.prevShip = this.currentShip
+            this.createShipByPosition(i, j)
+            this.fieldCanvas.updateInitialCells()
+            this.drawShip(this.currentShip!)
+        }
     }
 
     rotateCurrentShip() {
         if (this.currentShip) {
             this.currentShip.rotate()
+            this.fieldCanvas.cleanUpCells()
             this.drawShip(this.currentShip)
         }
+    }
+
+    private testFree(filed: TCells, i: number, j: number): boolean {
+        for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
+            for (let y = i == 0 ? 0 : -1; y < 2 - Math.floor(i / 9); y++) {
+                if (filed[i + x][j + y] == ECellType.withShip) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
     private drawShip(ship: Ship) {
@@ -108,26 +125,24 @@ class ShipManager {
         if (!position) {
             return
         }
-        const { i, j } = position;
-        const minPoint: number = 0
-        const maxPoint: number = size
-        for (let k = minPoint; k <= maxPoint; k++) {
+        this.currentShip.isCanPlace = true
+        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
+        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation.j, 0);
+        const shift: number = Math.max((i*rotation.i+j*rotation.j)+size-10, 0)
+        const minPoint: number = 0-shift
+        const maxPoint: number = size-shift
+        for (let k = minPoint; k < maxPoint; k++) {
             const currentPoint: TPosition = {
                 i: 0,
                 j: 0
             }
-            if (k + rotation.i * i > 9 || k + rotation.j * j > 9) {
-                currentPoint.i = rotation.j * i + rotation.i * (9 - k + minPoint)
-                currentPoint.j = (9 - k + minPoint) * rotation.j + j * rotation.i
+            currentPoint.i = i + k * rotation.i
+            currentPoint.j = j + k * rotation.j
+            if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-            } else if (k + rotation.i < 0 || k + rotation.j < 0) {
-                currentPoint.i = i * rotation.j + rotation.i * (Math.abs(k) + maxPoint)
-                currentPoint.j = (Math.abs(k) + maxPoint) * rotation.j + rotation.i * j
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-            } else {
-                currentPoint.i = i + k * rotation.i
-                currentPoint.j = j + k * rotation.j
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
+            }else{
+                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.hitted)
+                this.currentShip.isCanPlace = false
             }
         }
     }
@@ -142,7 +157,7 @@ class FieldCanvas extends CellsStore {
     }
 
     updateInitialCells() {
-        this.initialCells = this.getCells()
+        this.initialCells = cloneDeep(this.getCells())
     }
 
     cleanUpCells() {
@@ -153,22 +168,24 @@ class FieldCanvas extends CellsStore {
 
 interface IShip {
     size: TShipSize,
-    position: TPosition,
+    position?: TPosition,
     rotation: TRotation,
     num: number
 }
 
 class Ship {
-    position: TPosition
+    position?: TPosition
     size: TShipSize
     rotation: TRotation
     num: number
+    isCanPlace: boolean
 
     constructor({ size, position, rotation, num }: IShip) {
         this.size = size
         this.position = position
         this.rotation = rotation
         this.num = num
+        this.isCanPlace = false
     }
 
     rotate() {
@@ -188,16 +205,6 @@ export class InitScreenStore {
         this.shipManager = new ShipManager(cells)
     }
 
-    // private testFree(filed: FieldStore, point: TPosition): boolean {
-    //     for (let i = point.i == 0 ? 0 : -1; i < 2 - Math.floor(point.i / 9); i++) {
-    //         for (let j = point.i == 0 ? 0 : -1; j < 2 - Math.floor(point.i / 9); j++) {
-    //             if (filed.getCell(point.i + i, point.j + j) == ECellType.withShip) {
-    //                 return true
-    //             }
-    //         }
-    //     }
-    //     return false
-    // }
 
     getCells() {
         return this.shipManager.getCells()

@@ -6,6 +6,7 @@ export interface ICellProps {
     type: ECellType;
     onMouseOver: (e: MouseEvent<HTMLDivElement>) => void;
     onClick: (e: MouseEvent<HTMLDivElement>) => void;
+    onMouseLeave: (e: MouseEvent<HTMLDivElement>) => void;
 }
 
 const getSym = (type: ECellType) => {
@@ -23,8 +24,8 @@ const getSym = (type: ECellType) => {
     }
 }
 
-export const Cell: FC<ICellProps> = ({ type, onMouseOver, onClick }) => {
-    return <div onClick={onClick} onMouseOver={onMouseOver}>{getSym(type)}</div>
+export const Cell: FC<ICellProps> = ({ type, onMouseOver, onClick, onMouseLeave }) => {
+    return <div onMouseLeave={onMouseLeave} onClick={onClick} onMouseOver={onMouseOver}>{getSym(type)}</div>
 };
 
 
