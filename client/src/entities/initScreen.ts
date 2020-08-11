@@ -62,19 +62,19 @@ class ShipManager {
         };
 
         if (this.prevShip) {
-            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] == this.prevShip.num) {
+            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num) {
                 shipDescr.size -= 1
                 shipDescr.num = 1
-                //return
             } else {
                 shipDescr.num += 1
             }
         }
-        console.log(shipDescr.size)
         this.currentShip = new Ship(shipDescr)
+        // TODO проверить, скорее всего оно нужно
         //this.drawShip(this.currentShip)
     }
 
+    // TODO вернуть как было, если нужно, сделать новый метод
     deleteCurrentShip() {
         if(this.currentShip){
             this.currentShip.position = undefined
@@ -92,7 +92,8 @@ class ShipManager {
     addShipByPostion(i: number, j: number) {
         if(this.currentShip && this.currentShip.isCanPlace){
             this.prevShip = this.currentShip
-            this.createShipByPosition(i, j)
+            // TODO проверить нужно ли оно тут
+            // this.createShipByPosition(i, j)
             this.fieldCanvas.updateInitialCells()
             this.drawShip(this.currentShip!)
         }
@@ -117,7 +118,9 @@ class ShipManager {
         return true
     }
 
+    // TODO refactoring required
     private drawShip(ship: Ship) {
+        this.fieldCanvas.cleanUpCells()
         if (!this.currentShip) {
             return
         }
@@ -161,7 +164,7 @@ class FieldCanvas extends CellsStore {
     }
 
     cleanUpCells() {
-        this.setCells(this.initialCells)
+        this.setCells(cloneDeep(this.initialCells))
     }
 
 }

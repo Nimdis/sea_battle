@@ -47,7 +47,7 @@ export const InitScreen: FC = () => {
     // click
 
     return useObserver(() => (
-        <Field>
+        <Field onMouseLeave={handleMouseLeave()}>
             {initScreen.getCells().map((row, i) => (
                 <Row key={i}>
                     {row.map((type, j) => (
@@ -56,7 +56,6 @@ export const InitScreen: FC = () => {
                             key={`${i}-${j}`}
                             onMouseOver={handleMouseOver(i, j)}
                             onClick={handleClick(i, j)}
-                            onMouseLeave={handleMouseLeave()}
                         />
                     ))}
                 </Row>
