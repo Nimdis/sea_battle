@@ -1,6 +1,6 @@
 {
    "type": "postgres",
-   "host": "localhost",
+   "host": "sb_db",
    "port": 5432,
    "username": "test",
    "password": "test",

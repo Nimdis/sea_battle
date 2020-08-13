@@ -9,12 +9,14 @@
    },
    "dependencies": {
       "@types/socket.io": "^2.1.11",
+      "nodemon": "^2.0.4",
       "pg": "^7.3.0",
       "reflect-metadata": "^0.1.10",
       "socket.io": "^2.3.0",
       "typeorm": "0.2.25"
    },
    "scripts": {
-      "start": "ts-node src/index.ts"
+      "start": "ts-node src/index.ts",
+      "dev": "nodemon src/index.ts"
    }
 }
