@@ -71,11 +71,11 @@ class ShipManager {
         }
         this.currentShip = new Ship(shipDescr)
         // TODO проверить, скорее всего оно нужно
-        //this.drawShip(this.currentShip)
+        this.drawShip(this.currentShip)
     }
 
     // TODO вернуть как было, если нужно, сделать новый метод
-    deleteCurrentShip() {
+    leaveCurrentShip() {
         if(this.currentShip){
             this.currentShip.position = undefined
         }
@@ -93,9 +93,8 @@ class ShipManager {
         if(this.currentShip && this.currentShip.isCanPlace){
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
-            // this.createShipByPosition(i, j)
             this.fieldCanvas.updateInitialCells()
-            this.drawShip(this.currentShip!)
+            this.createShipByPosition(i, j)
         }
     }
 
@@ -120,15 +119,16 @@ class ShipManager {
 
     // TODO refactoring required
     private drawShip(ship: Ship) {
+        console.log("re")
         this.fieldCanvas.cleanUpCells()
-        if (!this.currentShip) {
+        if (!ship) {
             return
         }
-        const { size, rotation, position } = this.currentShip!
+        const { size, rotation, position } = ship!
         if (!position) {
             return
         }
-        this.currentShip.isCanPlace = true
+        ship.isCanPlace = true
         const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
         const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation.j, 0);
         const shift: number = Math.max((i*rotation.i+j*rotation.j)+size-10, 0)
@@ -145,7 +145,7 @@ class ShipManager {
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
             }else{
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.hitted)
-                this.currentShip.isCanPlace = false
+                ship.isCanPlace = false
             }
         }
     }
@@ -218,7 +218,7 @@ export class InitScreenStore {
     }
 
     handleMouseLeave() {
-        this.shipManager.deleteCurrentShip()
+        this.shipManager.leaveCurrentShip()
     }
 
     handleClick(i: number, j: number) {
