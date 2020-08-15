@@ -1,14 +1,24 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, CreateDateColumn, Generated} from "typeorm";
 import { Player } from "./Player";
-import { PlayerTurn }  from "./PlayerTurn"
+import { Ship } from "./Ship";
 
 @Entity()
 export class Game extends BaseEntity {
 
-    @PrimaryGeneratedColumn("uuid")
+    @PrimaryGeneratedColumn()
     id: string;
 
-    @OneToOne(type => Player)
-    created_at: Player;
+    @Column()
+    @Generated('uuid')
+    token: string
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @OneToMany(type => Player, player => player.game)
+    players: Player[]
+
+    @OneToMany(type => Ship, ship => ship.game)
+    ships: Ship[]
 
 }

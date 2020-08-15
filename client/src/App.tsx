@@ -1,14 +1,27 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC } from 'react';
+
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from 'react-router-dom';
 
 import { Game } from './Game'
-
-// 1. Components and components composition
-// 2. Immutability
-// 3. FP
-// 4. Unidirectional data flow
+import { Home } from './Home'
 
 const App: FC = () => {
-  return <Game />;
+  return (
+    <Router>
+      <Switch>
+        <Route path="/game/:token">
+          <Game />
+        </Route>
+        <Route path="/">
+          <Home />
+        </Route>
+      </Switch>
+    </Router>
+  );
 }
 
 export default App;

@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
-      POSTGRES_DB: test
+      POSTGRES_DB: sea_battle
     ports: 
       - "5432:5432"
   server:

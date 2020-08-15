@@ -1,39 +1,27 @@
-import "reflect-metadata";
-import { createConnection } from "typeorm";
-import { Game } from "./entities/Game";
-import { Player } from "./entities/Player";
+import "reflect-metadata"
 import socket from 'socket.io'
+import { createConnection } from "typeorm"
 
-//const io = socket()
+import { attachGame, attachPlayer } from './middlewares'
+import { LobbyService } from './services/Lobby'
+import { GameService } from './services/Game'
 
-//io.on('connection', s => {
-//    console.log('user connected')
-//})
+const io = socket()
 
-//io.listen(3000)
+const gameNS = io.of('/game')
 
+gameNS.use(attachGame)
+gameNS.use(attachPlayer)
 
-const run = async() => {
-    await createConnection();
+const ls = new LobbyService(io)
+ls.run()
+const gs = new GameService(gameNS)
+gs.run()
 
-    console.log("Inserting a new user into the database...");
-    
-    const player = new Player();
-    player.token = "hello";
-    const game = new Game();
-    game.created_at = player;
-    await player.save()
-    await game.save()
-    //await user.save();
-    console.log("Saved a new user with id: " + game.id);
-
-    //console.log("Loading users from the database...");
-    //const users = await connection.manager.find(User);
-    //console.log("Loaded users: ", users);
-
-    
-    //console.log("Here you can setup and run express/koa/any other framework.");
-
+const run = async () => {
+    await createConnection()
+    io.listen(4000)
+    console.log('started..')
 }
 
-run().catch(console.log);
+run()
