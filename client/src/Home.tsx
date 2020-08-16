@@ -2,19 +2,13 @@ import React, { FC } from 'react'
 import { Redirect } from 'react-router-dom'
 import { observable, action } from 'mobx';
 import { useObserver } from 'mobx-react-lite';
+import axios from 'axios'
 
-import { LobbyService, IGameCreatedMsg } from './services/Lobby'
+import { IGameCreatedMsg } from './services/Lobby'
 import { gameStorage } from './GameStorage'
-import { IScreenStore, useScreenStoreHooks } from './hooks';
 
-class HomeScreen implements IScreenStore {
+class HomeScreen {
     @observable private token?: string
-
-    lobbySerivce: LobbyService
-
-    constructor() {
-        this.lobbySerivce = new LobbyService()
-    }
 
     @action
     setToken(token: string) {
@@ -25,18 +19,14 @@ class HomeScreen implements IScreenStore {
         return this.token;
     }
 
-    private onCreated(msg: IGameCreatedMsg) {
-        this.setToken(msg.token)
-        gameStorage.setToken(msg.token)
-        gameStorage.setPlayerToken(msg.playerToken)
-    }
-
-    onUnmount() {
-        this.lobbySerivce.destroy()
-    }
-
     handleClick = async () => {
-        this.onCreated(await this.lobbySerivce.newGame())
+        const resp = await axios.create({
+            baseURL: 'http://localhost:4000'
+        }).post<IGameCreatedMsg>('/new_game')
+        const { playerToken, token } = resp.data
+        this.setToken(token)
+        gameStorage.setToken(token)
+        gameStorage.setPlayerToken(playerToken)
     }
 }
 
@@ -44,8 +34,6 @@ const homeScreen = new HomeScreen()
 
 
 export const Home: FC = () => {
-    useScreenStoreHooks(homeScreen)
-
     return useObserver(() => (
         <div>
             {homeScreen.getToken() && <Redirect to={`/game/${homeScreen.getToken()}`} />}

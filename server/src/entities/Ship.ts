@@ -2,6 +2,18 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne} from "typ
 import { Player } from "./Player";
 import { Game } from "./Game";
 
+export type TPosition = {
+    i: number
+    j: number
+}
+
+export type TRotationUnit = 0 | 1
+
+export type TRotation = {
+    i: TRotationUnit
+    j: TRotationUnit
+}
+
 @Entity()
 export class Ship extends BaseEntity {
 
@@ -17,10 +29,9 @@ export class Ship extends BaseEntity {
     @Column()
     size: number
 
-    // @Column()
-    // position: 
+    @Column({ type: 'json' })
+    position: TPosition
 
-    // @Column()
-    // rotation: number
-
+    @Column({ type: 'json' })
+    rotation: TRotation
 }

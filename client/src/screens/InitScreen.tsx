@@ -5,7 +5,7 @@ import { useObserver } from 'mobx-react-lite'
 
 import { Field } from '../components/Field'
 import { Cell } from '../components/Cell'
-import { InitScreenStore } from '../entities/initScreen'
+import { initScreen } from '../entities/initScreen'
 import { field } from '../entities/field'
 
 const Row = styled.div`
@@ -14,8 +14,6 @@ display: flex;
 
 export const InitScreen: FC = () => {
     console.log("rerender")
-
-    const initScreen = useMemo(() => new InitScreenStore(field.cloneCells()), [])
 
     const handleMouseOver = useCallback((i: number, j: number) => () => {
         initScreen.handleMouseOver(i, j)

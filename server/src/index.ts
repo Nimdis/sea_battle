@@ -1,26 +1,51 @@
 import "reflect-metadata"
 import socket from 'socket.io'
 import { createConnection } from "typeorm"
+import { createServer } from 'http'
+import server from 'express'
+import bodyParser from 'body-parser'
+import cors from 'cors'
 
-import { attachGame, attachPlayer } from './middlewares'
-import { LobbyService } from './services/Lobby'
-import { GameService } from './services/Game'
+// import { attachGame, attachPlayer } from './middlewares'
 
-const io = socket()
+import { Game } from './entities/Game'
+import { Player } from './entities/Player'
+import { Ship } from './entities/Ship'
 
-const gameNS = io.of('/game')
+const app = server()
+const http = createServer(app)
 
-gameNS.use(attachGame)
-gameNS.use(attachPlayer)
+app.use(bodyParser.json())
+app.use(cors())
 
-const ls = new LobbyService(io)
-ls.run()
-const gs = new GameService(gameNS)
-gs.run()
+const io = socket(http)
+
+app.post('/new_game', async (_req, res) => {
+    const game = new Game()
+    await game.save()
+
+    const player = new Player()
+    player.game = game
+    await player.save()
+        
+    res.json({
+        token: game.token,
+        playerToken: player.token
+    })
+})
+
+app.get('/ships', async (_req, res) => {
+    // TODO write algorythm for random ships
+    // Save ships to DB
+    // Sent ships to client
+    res.json({
+        ships: []
+    })
+})
 
 const run = async () => {
     await createConnection()
-    io.listen(4000)
+    http.listen(4000)
     console.log('started..')
 }
 

@@ -1,6 +1,8 @@
 import { CellsStore, ECellType, TCells } from './CellsStore'
 import { cloneDeep } from "lodash"
 
+import { field } from './field'
+
 export type TPosition = {
     i: number
     j: number
@@ -229,3 +231,5 @@ export class InitScreenStore {
         this.shipManager.rotateCurrentShip()
     }
 }
+
+export const initScreen = new InitScreenStore(field.cloneCells())

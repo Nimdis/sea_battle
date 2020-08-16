@@ -1,19 +1,18 @@
 import React, { FC, useState, useEffect, useRef } from 'react'
 import { useObserver } from 'mobx-react-lite'
 import { observable, action } from 'mobx';
+import axios from 'axios'
+import { Redirect } from 'react-router';
 
 import { InitScreen } from './screens/InitScreen'
 import { game } from './entities/game'
-import { GameService } from './services/Game'
+import { initScreen } from './entities/initScreen'
 import { gameStorage } from './GameStorage'
 import { IScreenStore, useScreenStoreHooks } from './hooks';
-import { Redirect } from 'react-router';
 
 class GameScreen implements IScreenStore {
     @observable isLoading: boolean = true
     @observable hasNoToken: boolean = false
-
-    private gameService?: GameService
 
     async onMount() {
         const playerToken = gameStorage.getPlayerToken()
@@ -23,22 +22,20 @@ class GameScreen implements IScreenStore {
             this.setLoading(false)
             return
         }
-        this.gameService = new GameService(token, playerToken);
         try {
             console.log('====')
-            const ships = await this.gameService.getShips()
+            const resp = await axios.create({
+                baseURL: 'http://localhost:4000'
+            // TODO write type of server respose
+            }).get<{}>('/ships')
+            console.log(resp.data)
             console.log('====')
-            console.log(ships)
+            // TODO move ships to initScreen entity
+            // initScreen
         } catch {
             this.setHasNoToken(true)
         } finally {
             this.setLoading(false)
-        }
-    }
-
-    onUnmount() {
-        if (this.gameService) {
-            this.gameService?.destroy()
         }
     }
 
