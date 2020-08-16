@@ -34,7 +34,8 @@ app.post('/new_game', async (_req, res) => {
     })
 })
 
-app.get('/ships', async (_req, res) => {
+app.get('/ships', async (req, res) => {
+    console.log(req.headers['x-auth-player'])
     // TODO write algorythm for random ships
     // Save ships to DB
     // Sent ships to client

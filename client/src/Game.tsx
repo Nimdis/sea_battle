@@ -25,7 +25,10 @@ class GameScreen implements IScreenStore {
         try {
             console.log('====')
             const resp = await axios.create({
-                baseURL: 'http://localhost:4000'
+                baseURL: 'http://localhost:4000',
+                headers: {
+                    'x-auth-player': playerToken
+                }
             // TODO write type of server respose
             }).get<{}>('/ships')
             console.log(resp.data)
