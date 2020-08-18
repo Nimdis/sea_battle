@@ -1,18 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne} from "typeorm";
 import { Player } from "./Player";
 import { Game } from "./Game";
-
-export type TPosition = {
-    i: number
-    j: number
-}
-
-export type TRotationUnit = 0 | 1
-
-export type TRotation = {
-    i: TRotationUnit
-    j: TRotationUnit
-}
+import { TPosition, TRotation, TShipSize } from "../logic/ship"
 
 @Entity()
 export class Ship extends BaseEntity {
@@ -27,7 +16,7 @@ export class Ship extends BaseEntity {
     player: Player
 
     @Column()
-    size: number
+    size: TShipSize
 
     @Column({ type: 'json' })
     position: TPosition
