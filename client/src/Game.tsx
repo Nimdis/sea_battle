@@ -5,16 +5,19 @@ import axios from 'axios'
 import { Redirect } from 'react-router';
 
 import { InitScreen } from './screens/InitScreen'
+import { IShip } from './entities/initScreen'
 import { game } from './entities/game'
 import { initScreen } from './entities/initScreen'
 import { gameStorage } from './GameStorage'
 import { IScreenStore, useScreenStoreHooks } from './hooks';
+import { TCells } from './entities/CellsStore';
+import { GameScreen } from './screens/GameScreen'
 
-class GameScreen implements IScreenStore {
+class GameInitializer {
     @observable isLoading: boolean = true
     @observable hasNoToken: boolean = false
 
-    async onMount() {
+    async init() {
         const playerToken = gameStorage.getPlayerToken()
         const token = gameStorage.getToken()
         if (!playerToken || !token) {
@@ -23,18 +26,17 @@ class GameScreen implements IScreenStore {
             return
         }
         try {
-            console.log('====')
             const resp = await axios.create({
                 baseURL: 'http://localhost:4000',
                 headers: {
                     'x-auth-player': playerToken
                 }
             // TODO write type of server respose
-            }).get<{}>('/ships')
-            console.log(resp.data)
-            console.log('====')
-            // TODO move ships to initScreen entity
-            // initScreen
+            }).get<{
+                cells: TCells
+                ships: IShip[]
+            }>('/ships')
+            initScreen.setCells(resp.data.cells)
         } catch {
             this.setHasNoToken(true)
         } finally {
@@ -49,28 +51,42 @@ class GameScreen implements IScreenStore {
 
     @action
     setHasNoToken(hasNoToken: boolean) {
-        this.hasNoToken  = hasNoToken
+        this.hasNoToken = hasNoToken
     }
 }
 
-const gameScreen = new GameScreen()
+class GameScreenStore implements IScreenStore {
+    gameInitializer = new GameInitializer()
+
+    @action.bound
+    startGame() {
+        game.setPhase('game')
+    }
+
+    onMount() {
+        this.gameInitializer.init()
+    }
+}
+
+const gameScreen = new GameScreenStore()
 
 export const Game: FC = () => {
     useScreenStoreHooks(gameScreen)
 
     return useObserver(() => {
-        if (gameScreen.isLoading) {
+        if (gameScreen.gameInitializer.isLoading) {
             return <div>Loading...</div>
         }
 
-        if (gameScreen.hasNoToken) {
+        if (gameScreen.gameInitializer.hasNoToken) {
             return <Redirect to="/" />
         }
 
         switch (game.getPhase()) {
             case 'initialization':
-                return <InitScreen />
+                return <InitScreen onStartGame={gameScreen.startGame} />
             case 'game':
+                return <GameScreen />
             case 'finished':
             default:
                 return <div>Error</div>

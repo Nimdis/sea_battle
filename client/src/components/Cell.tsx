@@ -4,8 +4,8 @@ import { ECellType } from '../entities/CellsStore'
 
 export interface ICellProps {
     type: ECellType;
-    onMouseOver: (e: MouseEvent<HTMLDivElement>) => void;
-    onClick: (e: MouseEvent<HTMLDivElement>) => void;
+    onMouseOver?: (e: MouseEvent<HTMLDivElement>) => void;
+    onClick?: (e: MouseEvent<HTMLDivElement>) => void;
 }
 
 const getSym = (type: ECellType) => {

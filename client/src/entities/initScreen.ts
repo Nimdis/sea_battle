@@ -43,6 +43,10 @@ class ShipManager {
         return this.fieldCanvas.getCells()
     }
 
+    setCells(cells: TCells) {
+        this.fieldCanvas.setCells(cells);
+    }
+
     upsertShipByPosition(i: number, j: number) {
         if (this.currentShip) {
             return this.updateCurrentShipPostion(i, j)
@@ -171,7 +175,7 @@ class FieldCanvas extends CellsStore {
 
 }
 
-interface IShip {
+export interface IShip {
     size: TShipSize,
     position?: TPosition,
     rotation: TRotation,
@@ -213,6 +217,10 @@ export class InitScreenStore {
 
     getCells() {
         return this.shipManager.getCells()
+    }
+
+    setCells(cells: TCells) {
+        this.shipManager.setCells(cells)
     }
 
     handleMouseOver(i: number, j: number) {
