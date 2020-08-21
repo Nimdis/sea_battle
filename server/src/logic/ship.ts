@@ -1,5 +1,5 @@
 import { CellsStore, ECellType, TCells } from './CellsStore'
-import { cloneDeep, range } from "lodash"
+import { cloneDeep, range, join } from "lodash"
 
 import { FieldCanvas } from './field'
 
@@ -72,16 +72,16 @@ export class ShipManager {
         return this.fieldCanvas.getCells()
     }
 
-    upsertShipByPosition(i: number, j: number) {
+    updateCurrentShipPosition(i: number, j: number) {
         if (this.currentShip) {
-            return this.updateCurrentShipPostion(i, j)
+            this.currentShip.position = { i, j }
+            this.drawShip(this.currentShip)
         }
-        this.createShipByPosition(i, j)
     }
 
     createShipByPosition(i: number, j: number) {
         const shipDescr: IShip = {
-            num: this.prevShip ? this.prevShip.num : 1,
+            num: 1,
             position: {
                 i, j
             },
@@ -91,14 +91,13 @@ export class ShipManager {
             },
             size: this.prevShip ? this.prevShip.size : 4
         };
-
         if (this.prevShip) {
             if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num) {
                 shipDescr.size -= 1
                 shipDescr.num = 1
 
             } else {
-                shipDescr.num += 1
+                shipDescr.num = this.prevShip.num + 1
             }
         }
         this.currentShip = new Ship(shipDescr)
@@ -106,25 +105,9 @@ export class ShipManager {
         this.drawShip(this.currentShip)
     }
 
-    // TODO вернуть как было, если нужно, сделать новый метод
-    //leaveCurrentShip() {
-    //    if(this.currentShip){
-    //        this.currentShip.position = undefined
-    //    }
-    //    this.fieldCanvas.cleanUpCells()
-    //}
-
-    updateCurrentShipPostion(i: number, j: number) {
-        if (this.currentShip) {
-            this.currentShip.position = { i, j }
-            this.drawShip(this.currentShip)
-
-        }
-    }
-
     addShipByPostion(i: number, j: number) {
-        this.upsertShipByPosition(i, j)
-        if(this.currentShip && this.currentShip.isCanPlace){
+        this.updateCurrentShipPosition(i, j)
+        if(this.currentShip.isCanPlace){
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
             this.fieldCanvas.updateInitialCells()
@@ -142,10 +125,10 @@ export class ShipManager {
         }
     }
 
-    private testFree(filed: TCells, i: number, j: number): boolean {
+    private testFree(field: TCells, i: number, j: number): boolean {
         for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
-            for (let y = i == 0 ? 0 : -1; y < 2 - Math.floor(i / 9); y++) {
-                if (filed[i + x][j + y] == ECellType.withShip) {
+            for (let y = j == 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
+                if (field[i + x][j + y] == ECellType.withShip) {
                     return false
                 }
             }
@@ -164,11 +147,11 @@ export class ShipManager {
             return
         }
         ship.isCanPlace = true
-        const i: number = position.i;
-        const j: number = position.j;
-        const shift: number = Math.max((i * rotation.i + j * rotation.j) + size - 10, 0)
-        const minPoint: number = 0 - shift
-        const maxPoint: number = size - shift
+        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
+        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation.j, 0);
+        const shift: number = Math.max((i*rotation.i+j*rotation.j)+size-10, 0)
+        const minPoint: number = 0-shift
+        const maxPoint: number = size-shift
         for (let k = minPoint; k < maxPoint; k++) {
             const currentPoint: TPosition = {
                 i: 0,
@@ -179,14 +162,12 @@ export class ShipManager {
             if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
             }else{
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.hitted)
                 ship.isCanPlace = false
             }
         }
     }
 
     getCurrentShip(){
-
         if(this.currentShip){
             const ship: IShip = {
                 position: this.currentShip.position,
@@ -198,18 +179,23 @@ export class ShipManager {
         }
     }
 
-    //randomPlaceShips(){
-    //    while(true){
-    //        if(Math.random()<0.5){
-    //            this.rotateCurrentShip()
-    //        }
-    //        this.addShipByPostion(Math.floor(Math.random()*10), Math.floor(Math.random()*10))
-    //        if(this.currentShip.size < 1){
-    //            break
-    //        }
-    //    }
-    //}
+    randomPlaceShips(){
+        const ships: IShip[] = []
+        this.createShipByPosition(0,0)
+        while (true) {
+            if (Math.random() < 0.5) {
+                this.rotateCurrentShip()
+            }
+           
+            if (this.addShipByPostion(Math.floor(Math.random() * 10), Math.floor(Math.random() * 10))) {
+                ships.push(this.getCurrentShip())
+                if (this.getCurrentShip().num == 4) {
+                    break
+                }
+            }
+        }
+        return ships
+    }
 }
-
 
 

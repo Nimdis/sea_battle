@@ -36,6 +36,7 @@ class GameInitializer {
                 cells: TCells
                 ships: IShip[]
             }>('/ships')
+            console.log(resp.data.cells)
             initScreen.setCells(resp.data.cells)
         } catch {
             this.setHasNoToken(true)

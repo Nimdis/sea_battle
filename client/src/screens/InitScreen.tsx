@@ -45,8 +45,8 @@ export const InitScreen: FC<IInitScreenProps> = ({ onStartGame }) => {
     return useObserver(() => {
         return (
             <div>
-                <button onClick={onStartGame}>Start game!!!!</button>
                 <GameField cells={initScreen.getCells()} />
+                <button onClick={onStartGame}>Start game!!!!</button>
             </div>
         )
     });

@@ -49,7 +49,7 @@ class ShipManager {
 
     upsertShipByPosition(i: number, j: number) {
         if (this.currentShip) {
-            return this.updateCurrentShipPostion(i, j)
+            return this.updateCurrentShipPosition(i, j)
         }
         this.createShipByPosition(i, j)
     }
@@ -66,7 +66,7 @@ class ShipManager {
             },
             size: this.prevShip ? this.prevShip.size : 4
         };
-
+        
         if (this.prevShip) {
             if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num) {
                 shipDescr.size -= 1
@@ -88,14 +88,14 @@ class ShipManager {
         this.fieldCanvas.cleanUpCells()
     }
 
-    updateCurrentShipPostion(i: number, j: number) {
+    updateCurrentShipPosition(i: number, j: number) {
         if (this.currentShip) {
             this.currentShip.position = { i, j }
             this.drawShip(this.currentShip)
         }
     }
 
-    addShipByPostion(i: number, j: number) {
+    addShipByPosition(i: number, j: number) {
         if(this.currentShip && this.currentShip.isCanPlace){
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
@@ -112,10 +112,18 @@ class ShipManager {
         }
     }
 
-    private testFree(filed: TCells, i: number, j: number): boolean {
+    placeShips(ships: IShip[]){
+        for (const ship of ships) {
+            if(this.drawShip(new Ship(ship))){
+                this.fieldCanvas.updateInitialCells()
+            }
+        }
+    }
+
+    private testFree(field: TCells, i: number, j: number): boolean {
         for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
-            for (let y = i == 0 ? 0 : -1; y < 2 - Math.floor(i / 9); y++) {
-                if (filed[i + x][j + y] == ECellType.withShip) {
+            for (let y = j == 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
+                if (field[i + x][j + y] == ECellType.withShip) {
                     return false
                 }
             }
@@ -125,14 +133,13 @@ class ShipManager {
 
     // TODO refactoring required
     private drawShip(ship: Ship) {
-        console.log("re")
         this.fieldCanvas.cleanUpCells()
         if (!ship) {
-            return
+            return false
         }
         const { size, rotation, position } = ship!
         if (!position) {
-            return
+            return false
         }
         ship.isCanPlace = true
         const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
@@ -154,6 +161,7 @@ class ShipManager {
                 ship.isCanPlace = false
             }
         }
+        return ship.isCanPlace
     }
 }
 
@@ -223,6 +231,10 @@ export class InitScreenStore {
         this.shipManager.setCells(cells)
     }
 
+    addShips(ships: IShip[]){
+        this.shipManager.placeShips(ships)
+    }
+
     handleMouseOver(i: number, j: number) {
         this.shipManager.upsertShipByPosition(i, j)
     }
@@ -232,7 +244,7 @@ export class InitScreenStore {
     }
 
     handleClick(i: number, j: number) {
-        this.shipManager.addShipByPostion(i, j)
+        this.shipManager.addShipByPosition(i, j)
     }
 
     handleRotate() {

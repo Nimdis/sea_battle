@@ -1,6 +1,5 @@
 import cloneDeep from 'lodash/fp/cloneDeep'
-import range from 'lodash/fp/range'
-import { CellsStore, ECellType, TCells } from './CellsStore';
+import { CellsStore, TCells } from './CellsStore';
 
 
 export class FieldCanvas extends CellsStore {

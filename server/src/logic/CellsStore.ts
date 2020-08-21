@@ -1,4 +1,3 @@
-import { observable, action } from 'mobx';
 
 export enum ECellType {
     empty,
@@ -10,13 +9,12 @@ export enum ECellType {
 export type TCells = ECellType[][]
 
 export class CellsStore {
-    @observable private cells: TCells;
+    private cells: TCells;
 
     constructor(cells: TCells) {
         this.cells = cells;
     }
 
-    @action
     setCell(i: number, j: number, value: ECellType) {
         this.cells[i][j] = value
     }
