@@ -107,11 +107,11 @@ export class ShipManager {
 
     addShipByPostion(i: number, j: number) {
         this.updateCurrentShipPosition(i, j)
-        if(this.currentShip.isCanPlace){
+        if (this.currentShip?.isCanPlace) {
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
-            this.fieldCanvas.updateInitialCells()
             this.createShipByPosition(i, j)
+            this.fieldCanvas.updateInitialCells()
             return true
         }
         return false
@@ -137,21 +137,21 @@ export class ShipManager {
     }
 
     // TODO refactoring required
-    private drawShip(ship: Ship) {
+    private drawShip(ship?: Ship) {
         this.fieldCanvas.cleanUpCells()
         if (!ship) {
             return
         }
-        const { size, rotation, position } = ship!
+        const { size, rotation, position } = ship
         if (!position) {
             return
         }
         ship.isCanPlace = true
         const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
         const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation.j, 0);
-        const shift: number = Math.max((i*rotation.i+j*rotation.j)+size-10, 0)
-        const minPoint: number = 0-shift
-        const maxPoint: number = size-shift
+        const shift: number = Math.max((i * rotation.i + j * rotation.j) + size - 10, 0)
+        const minPoint: number = 0 - shift
+        const maxPoint: number = size - shift
         for (let k = minPoint; k < maxPoint; k++) {
             const currentPoint: TPosition = {
                 i: 0,
@@ -159,9 +159,9 @@ export class ShipManager {
             }
             currentPoint.i = i + k * rotation.i
             currentPoint.j = j + k * rotation.j
-            if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
+            if (this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)) {
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-            }else{
+            } else {
                 ship.isCanPlace = false
             }
         }
@@ -188,8 +188,12 @@ export class ShipManager {
             }
            
             if (this.addShipByPostion(Math.floor(Math.random() * 10), Math.floor(Math.random() * 10))) {
-                ships.push(this.getCurrentShip())
-                if (this.getCurrentShip().num == 4) {
+                const ship = this.getCurrentShip()
+                if (!ship) {
+                    break
+                }
+                ships.push(ship)
+                if (ship.num == 4) {
                     break
                 }
             }

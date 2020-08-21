@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, JoinColumn, BaseEntity, OneToOne} from "typeorm";
 import { Game } from "./Game"
 import { Player } from "./Player"
 
@@ -11,10 +11,12 @@ export class PlayerTurn extends BaseEntity {
     //@Column()
     //position: string;
 
-    @OneToOne(type => Game)
+    @OneToOne(type => Game, { nullable: false })
+    @JoinColumn()
     game: Game
 
-    @OneToOne(type => Player)
+    @OneToOne(type => Player, { nullable: false })
+    @JoinColumn()
     player: Player
 
 }

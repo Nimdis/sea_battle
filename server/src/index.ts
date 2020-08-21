@@ -11,7 +11,8 @@ import { ShipManager, IShip } from './logic/ship'
 
 import { Game } from './entities/Game'
 import { Player } from './entities/Player'
-import { Ship } from './entities/Ship'
+import { Ship, buildInsert } from './entities/Ship'
+import { CellsStore } from './entities/CellsStore'
 
 const app = server()
 const http = createServer(app)
@@ -36,20 +37,45 @@ app.post('/new_game', async (_req, res) => {
 })
 
 app.get('/ships', async (req, res) => {
-    const shipManager = new ShipManager()
-    const ships: IShip[] = shipManager.randomPlaceShips();
-    const player = await Player.findOne({ where: { token: req.headers['x-auth-player'] } })
-    // 1. Метод для размещения шлюпок shipManager.placeRandomShips()
-    // 2. Внутри метода нужно вызывать другой метод, который умеет делать 2 вещи, либо разместить корабль, 
-    // либо выкинуть ошибку shipManager.createShipByPosition(i, j) -> ship (void) -> throw new Error('Cannot place ship here')
-    // mapper Ship -> IShip и IShip -> Ship
+    const player = await Player.findOne({ 
+        where: { 
+            token: req.headers['x-auth-player'] 
+        }, 
+        relations: ['game', 'ships', 'cellsStore'] 
+    })
 
-    // TODO write algorythm for random ships
-    // Save ships to DB
-    // Sent ships to client
-    res.json({
-        ships: ships,
+    if (!player) {
+        return res.status(401)
+    }
+
+    if (player.ships.length && player.cellsStore?.cells) {
+        return res.json({
+            ships: player.ships,
+            cells: player.cellsStore?.cells
+        })
+    }
+    const shipManager = new ShipManager()
+    const ships: IShip[] = shipManager.randomPlaceShips()
+
+    const shipsToInsert = ships.map(ship => {
+        return Ship.create({
+            game: player.game,
+            player: player,
+            position: ship.position,
+            rotation: ship.rotation,
+            size: ship.size
+        })
+    })
+
+    const cellsStore = await CellsStore.create({
+        player: player,
+        game: player.game,
         cells: shipManager.getCells()
+    }).save()
+
+    res.json({
+        ships: await buildInsert(shipsToInsert),
+        cells: cellsStore.cells
     })
 })
 
