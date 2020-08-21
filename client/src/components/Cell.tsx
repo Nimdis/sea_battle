@@ -1,5 +1,7 @@
 import React, { FC, MouseEvent } from 'react'
 
+import styled from 'styled-components'
+
 import { ECellType } from '../entities/CellsStore'
 
 export interface ICellProps {
@@ -23,8 +25,13 @@ const getSym = (type: ECellType) => {
     }
 }
 
+const SCell = styled.div`
+height: 20px;
+width: 20px;
+`
+
 export const Cell: FC<ICellProps> = ({ type, onMouseOver, onClick }) => {
-    return <div onClick={onClick} onMouseOver={onMouseOver}>{getSym(type)}</div>
+    return <SCell onClick={onClick} onMouseOver={onMouseOver}>{getSym(type)}</SCell>
 };
 
 
