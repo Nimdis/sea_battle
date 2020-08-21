@@ -6,18 +6,18 @@ import {
   Route
 } from 'react-router-dom';
 
-import { Game } from './Game'
-import { Home } from './Home'
+import { GameScreen } from './screens/GameScreen'
+import { HomeScreen } from './screens/HomeScreen'
 
 const App: FC = () => {
   return (
     <Router>
       <Switch>
         <Route path="/game/:token">
-          <Game />
+          <GameScreen />
         </Route>
         <Route path="/">
-          <Home />
+          <HomeScreen />
         </Route>
       </Switch>
     </Router>

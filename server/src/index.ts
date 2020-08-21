@@ -1,5 +1,4 @@
 import "reflect-metadata"
-import socket from 'socket.io'
 import { createConnection } from "typeorm"
 import { createServer } from 'http'
 import server from 'express'
@@ -7,7 +6,6 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 
 import { ShipManager, IShip } from './logic/ship' 
-// import { attachGame, attachPlayer } from './middlewares'
 
 import { Game } from './entities/Game'
 import { Player } from './entities/Player'
@@ -19,8 +17,6 @@ const http = createServer(app)
 
 app.use(bodyParser.json())
 app.use(cors())
-
-const io = socket(http)
 
 app.post('/new_game', async (_req, res) => {
     const game = new Game()
@@ -37,15 +33,35 @@ app.post('/new_game', async (_req, res) => {
 })
 
 app.get('/ships', async (req, res) => {
-    const player = await Player.findOne({ 
+    const playerToken = req.headers['x-auth-player']
+    const token = req.headers['x-game']
+
+    let player = await Player.findOne({ 
         where: { 
-            token: req.headers['x-auth-player'] 
+            token: playerToken 
         }, 
-        relations: ['game', 'ships', 'cellsStore'] 
+        relations: ['ships', 'cellsStore'] 
     })
 
-    if (!player) {
+    const game = await Game.findOne({
+        where: {
+            token
+        },
+        relations: ['players']
+    })
+
+    if (!game) {
+        return res.status(404)
+    }
+
+    if (!player && game.players.length === 2) {
         return res.status(401)
+    }
+
+    if (!player) {
+        player = new Player()
+        player.game = game
+        await player.save()
     }
 
     if (player.ships.length && player.cellsStore?.cells) {
@@ -59,7 +75,7 @@ app.get('/ships', async (req, res) => {
 
     const shipsToInsert = ships.map(ship => {
         return Ship.create({
-            game: player.game,
+            game: game,
             player: player,
             position: ship.position,
             rotation: ship.rotation,
@@ -69,7 +85,7 @@ app.get('/ships', async (req, res) => {
 
     const cellsStore = await CellsStore.create({
         player: player,
-        game: player.game,
+        game: game,
         cells: shipManager.getCells()
     }).save()
 

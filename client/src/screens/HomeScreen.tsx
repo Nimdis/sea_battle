@@ -1,13 +1,12 @@
-import React, { FC } from 'react'
+import React, { FC, useMemo } from 'react'
 import { Redirect } from 'react-router-dom'
 import { observable, action } from 'mobx';
 import { useObserver } from 'mobx-react-lite';
-import axios from 'axios'
 
-import { IGameCreatedMsg } from './services/Lobby'
-import { gameStorage } from './GameStorage'
+import { gameStorage } from '../GameStorage'
+import { newGame } from '../api'
 
-class HomeScreen {
+class HomeScreenStore {
     @observable private token?: string
 
     @action
@@ -20,20 +19,16 @@ class HomeScreen {
     }
 
     handleClick = async () => {
-        const resp = await axios.create({
-            baseURL: 'http://localhost:4000'
-        }).post<IGameCreatedMsg>('/new_game')
-        const { playerToken, token } = resp.data
+        const { playerToken, token } = await newGame()
         this.setToken(token)
         gameStorage.setToken(token)
         gameStorage.setPlayerToken(playerToken)
     }
 }
 
-const homeScreen = new HomeScreen()
+export const HomeScreen: FC = () => {
+    const homeScreen = useMemo(() => new HomeScreenStore(), [])
 
-
-export const Home: FC = () => {
     return useObserver(() => (
         <div>
             {homeScreen.getToken() && <Redirect to={`/game/${homeScreen.getToken()}`} />}
