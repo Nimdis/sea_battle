@@ -49,7 +49,7 @@ app.get('/ships', async (req, res) => {
         },
         relations: ['players']
     })
-
+    
     if (!game) {
         return res.status(404)
     }

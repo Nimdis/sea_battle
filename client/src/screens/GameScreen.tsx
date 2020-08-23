@@ -2,7 +2,6 @@ import React, { FC, useMemo, useEffect } from 'react'
 import { useObserver } from 'mobx-react-lite'
 import { Redirect } from 'react-router';
 
-
 import { GameContext, useGameStore } from '../GameContext'
 
 import { InitScreen } from './InitScreen'

@@ -8,12 +8,7 @@ export type TPosition = {
     j: number
 }
 
-type TRotationUnit = 0 | 1
-
-type TRotation = {
-    i: TRotationUnit
-    j: TRotationUnit
-}
+type TRotation = 0 | 1
 
 export type TShipSize = 1 | 2 | 3 | 4
 
@@ -60,10 +55,7 @@ class ShipManager {
             position: {
                 i, j
             },
-            rotation: {
-                i: 1,
-                j: 0
-            },
+            rotation: 0,
             size: this.prevShip ? this.prevShip.size : 4
         };
         
@@ -142,9 +134,9 @@ class ShipManager {
             return false
         }
         ship.isCanPlace = true
-        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * rotation.i, 0);
-        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation.j, 0);
-        const shift: number = Math.max((i*rotation.i+j*rotation.j)+size-10, 0)
+        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * (1 - rotation), 0);
+        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation, 0);
+        const shift: number = Math.max((i*(1 - rotation)+j*rotation)+size-10, 0)
         const minPoint: number = 0-shift
         const maxPoint: number = size-shift
         for (let k = minPoint; k < maxPoint; k++) {
@@ -152,8 +144,8 @@ class ShipManager {
                 i: 0,
                 j: 0
             }
-            currentPoint.i = i + k * rotation.i
-            currentPoint.j = j + k * rotation.j
+            currentPoint.i = i + k * (1 - rotation)
+            currentPoint.j = j + k * rotation
             if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
                 this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
             }else{
@@ -206,8 +198,7 @@ class Ship {
     }
 
     rotate() {
-        this.rotation.i = (1 - this.rotation.i) as TRotationUnit
-        this.rotation.j = (1 - this.rotation.j) as TRotationUnit
+        this.rotation = (1 - this.rotation) as TRotation
     }
 }
 
