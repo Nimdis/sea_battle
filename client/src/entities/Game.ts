@@ -1,7 +1,7 @@
 import { observable, action } from 'mobx'
 
 import { gameStorage } from '../GameStorage'
-import { getShips } from '../api'
+import { getShips, turn, ITurnResp } from '../api'
 
 import { initScreen } from './initScreen'
 
@@ -11,9 +11,9 @@ class GameInitializer {
     @observable isLoading: boolean = true
     @observable hasNoToken: boolean = false
 
-    async init() {
+    async init(token: string) {
         const playerToken = gameStorage.getPlayerToken()
-        const token = gameStorage.getToken()
+        const gameToken = gameStorage.getGameToken()
 
         if (!token) {
             this.setHasNoToken(true)
@@ -24,8 +24,10 @@ class GameInitializer {
         try {
             const resp = await getShips({
                 token,
-                playerToken
+                playerToken: gameToken === token ? playerToken : undefined
             })
+            gameStorage.setPlayerToken(resp.playerToken)
+            gameStorage.setGameToken(token)
             initScreen.setCells(resp.cells)
         } catch {
             this.setHasNoToken(true)
@@ -45,8 +47,41 @@ class GameInitializer {
     }
 }
 
+class EnemyWatcher {
+    private interval?: number
+    @observable private enemy?: ITurnResp
+
+    start(onEnemyOnline: () => void) {
+        const watcher = async () => {
+            this.setEnemy(await turn())
+
+            if (this.enemy?.isEnemyOnline) {
+                onEnemyOnline()
+            }
+        }
+
+        watcher()
+
+        setInterval(watcher, 10 * 1000)
+    }
+
+    stop() {
+        clearInterval(this.interval)
+    }
+
+    getEnemy() {
+        return this.enemy
+    }
+
+    @action
+    private setEnemy(enemy: ITurnResp) {
+        this.enemy = enemy
+    }
+}
+
 export class GameStore {
     initializer = new GameInitializer()
+    enemyWatcher = new EnemyWatcher()
 
     @observable private phase: TGamePhase 
 
@@ -62,13 +97,24 @@ export class GameStore {
     setPhase(phase: TGamePhase) {
         this.phase = phase
     }
+
+    isMyTurn() {
+        return this.enemyWatcher.getEnemy()?.isMyTurn
+    }
     
     @action.bound
     startGame() {
         this.setPhase('game')
     }
 
-    init() {
-        this.initializer.init()
+    private handleEnemyOnline = () => {
+        if (this.phase === 'initialization') {
+            this.setPhase('game')
+        }
+    }
+
+    async init(token: string) {
+        await this.initializer.init(token)
+        this.enemyWatcher.start(this.handleEnemyOnline)
     }
 }

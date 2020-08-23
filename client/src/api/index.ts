@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import { IShip } from '../entities/initScreen'
 import { TCells } from '../entities/CellsStore';
+import { gameStorage } from '../GameStorage';
 
 export const r = axios.create({
     baseURL: 'http://localhost:4000'
@@ -17,17 +18,43 @@ export const newGame = () => r.post<INewGameResp>('/new_game').then(resp => resp
 export interface IGetShipsResp {
     cells: TCells
     ships: IShip[]
+    playerToken: string
 }
+
+interface IHeaders {
+    token: string
+    playerToken?: string | null
+}
+
+const getHeaders = ({ token, playerToken }: IHeaders) => {
+    if (token && playerToken) {
+        return {
+            'x-auth-player': playerToken,
+            'x-game': token
+        }
+    }
+
+    return {
+        'x-game': token
+    }
+};
 
 export const getShips = ({ 
     token, 
     playerToken 
-}: {
-    token: string
-    playerToken?: string | null
-}) => r.get<IGetShipsResp>('/ships', {
-    headers: {
-        'x-auth-player': playerToken,
-        'x-game': token
-    }
+}: IHeaders) => r.get<IGetShipsResp>('/ships', {
+    headers: getHeaders({ token, playerToken })
+}).then(resp => resp.data)
+
+export interface ITurnResp {
+    isEnemyOnline: boolean
+    isMyTurn: boolean
+    turns: any[]
+}
+
+export const turn = () => r.get<ITurnResp>('/turn', {
+    headers: getHeaders({ 
+        token: gameStorage.getGameToken()!, 
+        playerToken: gameStorage.getPlayerToken() 
+    })
 }).then(resp => resp.data)

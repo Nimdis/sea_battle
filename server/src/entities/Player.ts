@@ -3,10 +3,10 @@ import {Generated, JoinColumn, Column, Entity, OneToMany, PrimaryGeneratedColumn
 import { Game } from "./Game";
 import { Ship } from "./Ship";
 import { CellsStore } from "./CellsStore";
+import { PlayerTurn } from "./PlayerTurn";
 
 @Entity()
 export class Player extends BaseEntity {
-
     @PrimaryGeneratedColumn()
     id: number
 
@@ -18,10 +18,15 @@ export class Player extends BaseEntity {
     @Generated('uuid')
     token: string
 
-    @OneToMany(type => Ship, ship => ship.game)
+    @OneToMany(type => Ship, ship => ship.player)
     ships: Ship[]
 
     @OneToOne(type => CellsStore, ship => ship.player)
     cellsStore?: CellsStore
 
+    @OneToMany(type => PlayerTurn, turn => turn.player)
+    turns: PlayerTurn[]
+
+    @Column()
+    lastVisitAt: Date = new Date()
 }

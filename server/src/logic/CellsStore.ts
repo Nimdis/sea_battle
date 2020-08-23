@@ -6,6 +6,11 @@ export enum ECellType {
     hitted
 }
 
+export enum ECellTurnType {
+    missed,
+    hitted
+}
+
 export type TCells = ECellType[][]
 
 export class CellsStore {

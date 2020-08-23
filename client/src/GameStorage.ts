@@ -1,18 +1,23 @@
 export class GameStorage {
-    setToken(token: string) {
-        localStorage.setItem('token', token)
-    }
-
     setPlayerToken(token: string) {
         localStorage.setItem('playerToken', token)
     }
 
-    getToken() {
-        return localStorage.getItem('token')
-    }
-
     getPlayerToken() {
         return localStorage.getItem('playerToken')
+    }
+
+    setGameToken(token: string) {
+        localStorage.setItem('gameToken', token)
+    }
+
+    getGameToken() {
+        return localStorage.getItem('gameToken')
+    }
+
+    clear() {
+        localStorage.removeItem('playerToken')
+        localStorage.removeItem('gameToken')
     }
 }
 
