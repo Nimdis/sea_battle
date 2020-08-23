@@ -166,6 +166,7 @@ export class ShipManager {
 
     // TODO refactoring required
     private drawShip(ship: Ship) {
+        this.fieldCanvas.cleanUpCells()
         if (!ship) {
             return false
         }
