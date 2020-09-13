@@ -5,6 +5,8 @@ import { useObserver } from 'mobx-react-lite';
 
 import { gameStorage } from '../GameStorage'
 import { newGame } from '../api'
+import { Button } from '../components/Button'
+import { Container } from '../components/Container'
 
 class HomeScreenStore {
     @observable private token?: string
@@ -31,9 +33,11 @@ export const HomeScreen: FC = () => {
     const homeScreen = useMemo(() => new HomeScreenStore(), [])
 
     return useObserver(() => (
-        <div>
-            {homeScreen.getToken() && <Redirect to={`/game/${homeScreen.getToken()}`} />}
-            <button onClick={homeScreen.handleClick}>New game</button>
-        </div>
+        <Container centred>
+            {homeScreen.getToken() && <Redirect push to={`/game/${homeScreen.getToken()}`} />}
+            <div>
+                <Button onClick={homeScreen.handleClick}>New game</Button>
+            </div>
+        </Container>
     ))
 }

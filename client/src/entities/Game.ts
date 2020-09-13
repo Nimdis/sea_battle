@@ -103,7 +103,7 @@ export class GameStore {
     }
 
     isMyTurn() {
-        return this.enemyWatcher.getEnemy()?.isMyTurn
+        return Boolean(this.enemyWatcher.getEnemy()?.isMyTurn)
     }
     
     getWinner() {

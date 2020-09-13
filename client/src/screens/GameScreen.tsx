@@ -7,6 +7,8 @@ import { GameContext, useGameStore } from '../GameContext'
 import { InitScreen } from './InitScreen'
 import { BattleScreen } from './BattleScreen'
 import { GameStore, TGamePhase } from '../entities/Game';
+import { Container } from '../components/Container'
+import { Loading } from '../components/Loading'
 
 interface IGamePresenterProps {
     isLoading: boolean;
@@ -16,7 +18,7 @@ interface IGamePresenterProps {
 
 const GamePresenter: FC<IGamePresenterProps> = ({ hasNoToken, phase, isLoading }) => {
     if (isLoading) {
-        return <div>Loading...</div>
+        return <Loading />
     }
 
     if (hasNoToken) {
@@ -57,8 +59,10 @@ export const GameScreen: FC = () => {
     }, [])
     
     return (
-        <GameContext.Provider value={gameStore}>
-            <GameInner />
-        </GameContext.Provider>
+        <Container>
+            <GameContext.Provider value={gameStore}>
+                <GameInner />
+            </GameContext.Provider>
+        </Container>
     );
 };
