@@ -3,14 +3,15 @@ export enum ECellType {
     empty,
     withShip,
     missed,
-    hitted
+    hitted,
+    killed
 }
 
 export enum ECellTurnType {
     missed,
-    hitted
+    hitted,
+    killed
 }
-
 export type TCells = ECellType[][]
 
 export class CellsStore {

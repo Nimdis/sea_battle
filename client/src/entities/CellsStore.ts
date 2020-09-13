@@ -1,10 +1,29 @@
 import { observable, action } from 'mobx';
+import range from 'lodash/fp/range'
 
 export enum ECellType {
     empty,
     withShip,
     missed,
-    hitted
+    hitted,
+    killed
+}
+
+export enum ECellTurnType {
+    missed,
+    hitted,
+    killed
+}
+
+export const getECellType = (type: ECellTurnType) => {
+    switch (type){
+        case ECellTurnType.missed:
+            return ECellType.missed
+        case ECellTurnType.hitted:
+            return ECellType.hitted
+        case ECellTurnType.killed:
+            return ECellType.killed
+    }
 }
 
 export type TCells = ECellType[][]
@@ -14,6 +33,12 @@ export class CellsStore {
 
     constructor(cells: TCells) {
         this.cells = cells;
+    }
+
+    static makeInitialCells() {
+        return new CellsStore(range(0, 10).map(() =>
+            range(0, 10).map(() => ECellType.empty)
+        ));
     }
 
     @action

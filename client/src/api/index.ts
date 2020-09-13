@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import { IShip } from '../entities/initScreen'
-import { TCells } from '../entities/CellsStore';
+import { TCells,  ECellTurnType } from '../entities/CellsStore';
 import { gameStorage } from '../GameStorage';
 
 export const r = axios.create({
@@ -50,11 +50,23 @@ export interface ITurnResp {
     isEnemyOnline: boolean
     isMyTurn: boolean
     turns: any[]
+    winner?: string
 }
 
 export const turn = () => r.get<ITurnResp>('/turn', {
     headers: getHeaders({ 
         token: gameStorage.getGameToken()!, 
+        playerToken: gameStorage.getPlayerToken() 
+    })
+}).then(resp => resp.data)
+
+export interface IFireResp {
+    type: ECellTurnType
+}
+
+export const fire = (i: number, j: number) => r.post<IFireResp>('/fire', {i, j}, {
+    headers: getHeaders({
+        token: gameStorage.getGameToken()!,
         playerToken: gameStorage.getPlayerToken() 
     })
 }).then(resp => resp.data)

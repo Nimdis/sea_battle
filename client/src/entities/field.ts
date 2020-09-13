@@ -1,14 +1,9 @@
 import cloneDeep from 'lodash/fp/cloneDeep'
 import range from 'lodash/fp/range'
-import { CellsStore, ECellType } from './CellsStore';
+import { CellsStore, ECellType, TCells } from './CellsStore';
 
 
 export class FieldStore extends CellsStore {
-    static makeInitialField() {
-        return new FieldStore(range(0, 10).map(() =>
-            range(0, 10).map(() => ECellType.empty)
-        ));
-    }
 
     clone() {
         return new FieldStore(cloneDeep(this.getCells()))
@@ -20,4 +15,22 @@ export class FieldStore extends CellsStore {
 
 }
 
-export const field = FieldStore.makeInitialField()
+export class FieldCanvas extends CellsStore {
+    initialCells: TCells
+
+    constructor(cells: TCells) {
+        super(cells)
+        this.initialCells = cells
+    }
+
+    updateInitialCells() {
+        this.initialCells = cloneDeep(this.getCells())
+    }
+
+    cleanUpCells() {
+        this.setCells(cloneDeep(this.initialCells))
+    }
+
+}
+
+export const field = new FieldStore(CellsStore.makeInitialCells().getCells())

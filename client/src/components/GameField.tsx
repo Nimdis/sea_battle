@@ -12,9 +12,24 @@ display: flex;
 
 export interface IGameFieldProps {
     cells: TCells
+    onCellClick?: (i: number, j: number) => void
+    onCellOver?: (i: number, j: number) => void
+    onCellLeave?: () => void
 }
 
-export const GameField: FC<IGameFieldProps> = ({ cells }) => {
+export const GameField: FC<IGameFieldProps> = ({ cells, onCellClick, onCellOver, onCellLeave }) => {
+    const handleCellClick = (i: number, j: number) => {
+        if(onCellClick){
+            return () => onCellClick(i, j)
+        }
+    }
+
+    const handleCellOver = (i: number, j: number) => {
+        if(onCellOver){
+            return () => onCellOver(i, j)
+        }
+    }
+
     return (
         <Field>
             {cells.map((row, i) => (
@@ -23,6 +38,9 @@ export const GameField: FC<IGameFieldProps> = ({ cells }) => {
                         <Cell
                             type={type}
                             key={`${i}-${j}`}
+                            onClick={handleCellClick(i, j)}
+                            onMouseOver={handleCellOver(i, j)}
+                            onMouseLeave={onCellLeave}
                         />
                     ))}
                 </Row>

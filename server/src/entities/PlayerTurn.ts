@@ -1,4 +1,4 @@
-import {CreateDateColumn, Column, Entity, PrimaryGeneratedColumn, JoinColumn, BaseEntity, OneToOne} from "typeorm";
+import {CreateDateColumn, Column, Entity, PrimaryGeneratedColumn, JoinColumn, BaseEntity, OneToOne, ManyToOne} from "typeorm";
 
 import { Game } from "./Game"
 import { Player } from "./Player"
@@ -14,11 +14,11 @@ export class PlayerTurn extends BaseEntity {
     @Column({ type: 'json' })
     position: TPosition
 
-    @OneToOne(type => Game, { nullable: false })
+    @ManyToOne(type => Game, game => game.turns, { nullable: false })
     @JoinColumn()
     game: Game
 
-    @OneToOne(type => Player, { nullable: false })
+    @ManyToOne(type => Player, player => player.turns, { nullable: false })
     @JoinColumn()
     player: Player
 

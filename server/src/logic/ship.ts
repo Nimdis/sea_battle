@@ -103,8 +103,9 @@ export class ShipManager {
         if (this.currentShip?.isCanPlace) {
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
-            this.createShipByPosition(i, j)
             this.fieldCanvas.updateInitialCells()
+            this.ships.push(this.currentShip)
+            this.createShipByPosition(i, j)
             return true
         }
         return false
@@ -126,8 +127,8 @@ export class ShipManager {
         if (!position) {
             return 0
         }
-        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * (1 - rotation), 0);
-        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation, 0);
+        const i: number = position.i
+        const j: number = position.j
         const shift: number = Math.max((i*(1 - rotation)+j*rotation)+size-10, 0)
         return shift;
     }
@@ -136,16 +137,16 @@ export class ShipManager {
         if(!ship1.position || !ship2.position){
             return false
         }
-        const i1 = (-this.getShift(ship1)) * (1 - ship1.rotation) + ship1.position.i + 1
-        const j1 = (-this.getShift(ship1)) * ship1.rotation + ship1.position.j + 1
-        const i2 = (-this.getShift(ship2)) * (1 - ship2.rotation) + ship2.position.i + 1
-        const j2 = (-this.getShift(ship2)) * ship2.rotation + ship2.position.j + 1
+        const i1 = (-this.getShift(ship1)) * (1 - ship1.rotation) + ship1.position.i - 1
+        const j1 = (-this.getShift(ship1)) * ship1.rotation + ship1.position.j - 1
+        const i2 = (-this.getShift(ship2)) * (1 - ship2.rotation) + ship2.position.i - 1
+        const j2 = (-this.getShift(ship2)) * ship2.rotation + ship2.position.j - 1
         const j = j1 - j2;
         const i = i1 - i2;
-        return ((j >= 0 && Math.abs(j) < 1) || 
-                (j < 0 && Math.abs(j) < 2)) &&
-               ((i >= 0 && Math.abs(i) < ship2.size) || 
-                (i < 0 && Math.abs(i) < ship1.size + 1))
+        return ((j >= 0 && Math.abs(j) <= (ship2.size - 1) * ship2.rotation + 1) || 
+                (j < 0 && Math.abs(j) <= (ship1.size - 1) * ship1.rotation + 1)) &&
+               ((i >= 0 && Math.abs(i) <= (ship2.size - 1) * (1 - ship2.rotation) + 1) || 
+                (i < 0 && Math.abs(i) <= (ship1.size - 1) * (1 - ship1.rotation) + 1))
     }
 
     private testFree(field: TCells, i: number, j: number): boolean {
@@ -157,6 +158,7 @@ export class ShipManager {
         for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
             for (let y = j == 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
                 if (field[i + x][j + y] == ECellType.withShip) {
+                    this.fieldCanvas.setCell(i, j, ECellType.killed)
                     return false
                 }
             }
@@ -175,10 +177,10 @@ export class ShipManager {
             return false
         }
         ship.isCanPlace = true
-        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * (1 - rotation), 0);
-        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation, 0);
+        const i: number = position.i
+        const j: number = position.j
         const minPoint: number = -this.getShift(ship)
-        const maxPoint: number = size-this.getShift(ship)
+        const maxPoint: number = size - this.getShift(ship)
         for (let k = minPoint; k < maxPoint; k++) {
             const currentPoint: TPosition = {
                 i: 0,
@@ -232,7 +234,7 @@ export class ShipManager {
                     break
                 }
                 ships.push(ship)
-                this.ships.push(new Ship(ship))
+                //this.ships.push(new Ship(ship))
                 if (ship.num == 4) {
                     break
                 }

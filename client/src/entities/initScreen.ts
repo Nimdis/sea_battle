@@ -1,7 +1,7 @@
-import { CellsStore, ECellType, TCells } from './CellsStore'
+import { CellsStore, ECellType, TCells, ECellTurnType } from './CellsStore'
 import { cloneDeep } from "lodash"
 
-import { field } from './field'
+import { field, FieldCanvas } from './field'
 
 export type TPosition = {
     i: number
@@ -36,6 +36,10 @@ class ShipManager {
 
     getCells() {
         return this.fieldCanvas.getCells()
+    }
+
+    setCell(i: number, j: number, type: ECellType) {
+        this.fieldCanvas.setCell(i, j, type);
     }
 
     setCells(cells: TCells) {
@@ -113,9 +117,9 @@ class ShipManager {
     }
 
     private testFree(field: TCells, i: number, j: number): boolean {
-        for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
-            for (let y = j == 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
-                if (field[i + x][j + y] == ECellType.withShip) {
+        for (let x = i === 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
+            for (let y = j === 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
+                if (field[i + x][j + y] === ECellType.withShip) {
                     return false
                 }
             }
@@ -134,8 +138,8 @@ class ShipManager {
             return false
         }
         ship.isCanPlace = true
-        const i: number = Math.max(position.i - Math.floor((size - 1) / 2) * (1 - rotation), 0);
-        const j: number = Math.max(position.j - Math.floor((size - 1) / 2) * rotation, 0);
+        const i: number = position.i
+        const j: number = position.j
         const shift: number = Math.max((i*(1 - rotation)+j*rotation)+size-10, 0)
         const minPoint: number = 0-shift
         const maxPoint: number = size-shift
@@ -155,24 +159,6 @@ class ShipManager {
         }
         return ship.isCanPlace
     }
-}
-
-class FieldCanvas extends CellsStore {
-    initialCells: TCells
-
-    constructor(cells: TCells) {
-        super(cells)
-        this.initialCells = cells
-    }
-
-    updateInitialCells() {
-        this.initialCells = cloneDeep(this.getCells())
-    }
-
-    cleanUpCells() {
-        this.setCells(cloneDeep(this.initialCells))
-    }
-
 }
 
 export interface IShip {
@@ -220,6 +206,10 @@ export class InitScreenStore {
 
     setCells(cells: TCells) {
         this.shipManager.setCells(cells)
+    }
+
+    setCell(i: number, j: number, type: ECellType) {
+        this.shipManager.setCell(i, j, type)
     }
 
     addShips(ships: IShip[]){

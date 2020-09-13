@@ -4,6 +4,8 @@ import { gameStorage } from '../GameStorage'
 import { getShips, turn, ITurnResp } from '../api'
 
 import { initScreen } from './initScreen'
+import { BattleManager } from "./battleScreen"
+import { getECellType } from './CellsStore'
 
 export type TGamePhase = 'initialization' | 'game' | 'finished';
 
@@ -38,7 +40,7 @@ class GameInitializer {
 
     @action
     setLoading(loading: boolean) {
-        this.isLoading  = loading
+        this.isLoading = loading
     }
 
     @action
@@ -62,7 +64,7 @@ class EnemyWatcher {
 
         watcher()
 
-        setInterval(watcher, 10 * 1000)
+        setInterval(watcher, 5 * 1000)
     }
 
     stop() {
@@ -82,11 +84,13 @@ class EnemyWatcher {
 export class GameStore {
     initializer = new GameInitializer()
     enemyWatcher = new EnemyWatcher()
+    battleManager: BattleManager
 
     @observable private phase: TGamePhase 
 
     constructor(phase: TGamePhase) {
         this.phase = phase
+        this.battleManager = new BattleManager()
     }
 
     getPhase() {
@@ -102,14 +106,32 @@ export class GameStore {
         return this.enemyWatcher.getEnemy()?.isMyTurn
     }
     
+    getWinner() {
+        return this.enemyWatcher.getEnemy()?.winner
+    }
+
     @action.bound
     startGame() {
         this.setPhase('game')
     }
 
+    //shot(i: number, j: number) {
+    //    try {
+    //        return fire(i, j)
+    //    } catch {
+    //        return
+    //    }
+    //}
+
     private handleEnemyOnline = () => {
         if (this.phase === 'initialization') {
             this.setPhase('game')
+        }
+        const turns = this.enemyWatcher.getEnemy()!.turns.filter(turn => 
+            turn.player.token !== gameStorage.getPlayerToken()
+        )
+        for(const turn of turns){
+            initScreen.setCell(turn.position.i, turn.position.j, getECellType(turn.type))
         }
     }
 
