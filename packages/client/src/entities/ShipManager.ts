@@ -1,7 +1,5 @@
-import { CellsStore, ECellType, TCells, ECellTurnType } from './CellsStore'
-import { cloneDeep } from "lodash"
-
-import { field, FieldCanvas } from './field'
+import { FieldCanvas } from './FieldStore'
+import { ECellType, TCells } from './CellsStore'
 
 export type TPosition = {
     i: number
@@ -25,7 +23,7 @@ const MAX_COUNT_BY_SHIP_TYPE = {
     1: 4,
 }
 
-class ShipManager {
+export class ShipManager {
     private fieldCanvas: FieldCanvas
     private currentShip?: Ship
     private prevShip?: Ship
@@ -72,11 +70,9 @@ class ShipManager {
             }
         }
         this.currentShip = new Ship(shipDescr)
-        // TODO проверить, скорее всего оно нужно
         this.drawShip(this.currentShip)
     }
 
-    // TODO вернуть как было, если нужно, сделать новый метод
     leaveCurrentShip() {
         if(this.currentShip){
             this.currentShip.position = undefined
@@ -187,50 +183,3 @@ class Ship {
         this.rotation = (1 - this.rotation) as TRotation
     }
 }
-
-// 1. Mouse in = create current ship + place it
-// 2. Move over = change current ship position + redraw
-// 3. Mouse leave = delete current ship
-
-export class InitScreenStore {
-    private shipManager: ShipManager
-
-    constructor(cells: TCells) {
-        this.shipManager = new ShipManager(cells)
-    }
-
-
-    getCells() {
-        return this.shipManager.getCells()
-    }
-
-    setCells(cells: TCells) {
-        this.shipManager.setCells(cells)
-    }
-
-    setCell(i: number, j: number, type: ECellType) {
-        this.shipManager.setCell(i, j, type)
-    }
-
-    addShips(ships: IShip[]){
-        this.shipManager.placeShips(ships)
-    }
-
-    handleMouseOver(i: number, j: number) {
-        this.shipManager.upsertShipByPosition(i, j)
-    }
-
-    handleMouseLeave() {
-        this.shipManager.leaveCurrentShip()
-    }
-
-    handleClick(i: number, j: number) {
-        this.shipManager.addShipByPosition(i, j)
-    }
-
-    handleRotate() {
-        this.shipManager.rotateCurrentShip()
-    }
-}
-
-export const initScreen = new InitScreenStore(field.cloneCells())

@@ -35,7 +35,7 @@ export class CellsStore {
         this.cells = cells;
     }
 
-    static makeInitialCells() {
+    static makeInitial() {
         return new CellsStore(range(0, 10).map(() =>
             range(0, 10).map(() => ECellType.empty)
         ));

@@ -4,7 +4,7 @@ export class GameStorage {
     }
 
     getPlayerToken() {
-        return localStorage.getItem('playerToken')
+        return localStorage.getItem('playerToken') ?? undefined
     }
 
     setGameToken(token: string) {
@@ -12,7 +12,7 @@ export class GameStorage {
     }
 
     getGameToken() {
-        return localStorage.getItem('gameToken')
+        return localStorage.getItem('gameToken') ?? undefined
     }
 
     clear() {

@@ -67,7 +67,4 @@ export const turn: RequestHandler = async (req: IReq, res) => {
             winner
         })
     }
-
-
-
 }

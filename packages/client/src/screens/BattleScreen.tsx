@@ -6,9 +6,34 @@ import { toJS } from "mobx"
 import { GameField } from '../components/GameField'
 import { Field } from '../components/Field'
 import { GameStatus } from '../components/GameStatus'
-import { initScreen } from '../entities/initScreen'
 import { useGameStore } from '../GameContext'
 import { BattleScreenStore } from '../entities/battleScreen'
+
+class BattleScreenStore {
+    private battleManager: BattleManager
+    // private localField: CellsStore
+
+    constructor(battleManager: BattleManager) {
+        this.battleManager = battleManager
+        this.localField = new CellsStore(cloneDeep(battleManager.getCells()))
+    }
+
+    handleMouseOver = (i: number, j: number) => {
+        this.localField.setCell(i, j, ECellType.withShip)
+    }
+
+    handleMouseLeave = () => {
+        this.localField.setCells(cloneDeep(this.battleManager.getCells()))
+    }
+
+    handleClick = (i: number, j: number) => {
+        this.battleManager.shot(i, j)
+    }
+
+    getCells(){
+        return this.localField.getCells()
+    }
+}
 
 export const BattleScreen: FC = () => {
     const gameStore = useGameStore()
@@ -34,7 +59,7 @@ export const BattleScreen: FC = () => {
                 winner={gameStore.getWinner()} 
             />
             <GameField>
-                <Field cells={initScreen.getCells()} />
+                <Field cells={gameStore.getCells()} />
                 <Field
                     clickable={gameStore.isMyTurn()}
                     cells={toJS(battleScreenStore.getCells())}
