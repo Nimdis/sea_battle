@@ -6,7 +6,7 @@ import { Player } from './entities/Player'
 
 export const attachGame: RequestHandler = async (req: IReq, res, next) => {
     const token = req.headers['x-game']
-
+    
     const game = await Game.findOne({
         where: {
             token

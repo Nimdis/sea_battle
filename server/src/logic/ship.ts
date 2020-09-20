@@ -2,6 +2,7 @@ import { CellsStore, ECellType, TCells } from './CellsStore'
 import { cloneDeep, range, join } from "lodash"
 
 import { FieldCanvas } from './field'
+import { DH_CHECK_P_NOT_PRIME } from 'constants'
 
 export type TPosition = {
     i: number
@@ -37,14 +38,12 @@ class Ship {
     size: TShipSize
     rotation: TRotation
     num: number
-    isCanPlace: boolean
 
     constructor({ size, position, rotation, num }: IShip) {
         this.size = size
         this.position = position
         this.rotation = rotation
         this.num = num
-        this.isCanPlace = false
     }
 
     rotate() {
@@ -52,71 +51,56 @@ class Ship {
     }
 }
 
+const ShipToIShip = (ship : Ship) => {
+    return {
+        size: ship.size,
+        position: ship.position,
+        rotation: ship.rotation,
+        num: ship.num
+    } as IShip
+}
+
 export class ShipManager {
     private fieldCanvas: FieldCanvas
-    private currentShip?: Ship
-    private prevShip?: Ship
+    private currentShip: Ship
     private ships: Ship[]
 
     constructor() {
         this.fieldCanvas = new FieldCanvas(range(0, 10).map(() =>
         range(0, 10).map(() => ECellType.empty)))
         this.ships = []
+        this.currentShip = new Ship({
+            num: 1,
+            position: undefined,
+            rotation: 0,
+            size: 4
+        } as IShip);
     }
 
     getCells() {
         return this.fieldCanvas.getCells()
     }
 
-    updateCurrentShipPosition(i: number, j: number) {
-        if (this.currentShip) {
-            this.currentShip.position = { i, j }
-            this.drawShip(this.currentShip)
-        }
+    setCurrentShipPosition(i: number, j: number) {
+        this.currentShip.position = { i, j }
     }
 
-    createShipByPosition(i: number, j: number) {
-        const shipDescr: IShip = {
-            num: 1,
-            position: {
-                i, j
-            },
-            rotation: 0,
-            size: this.prevShip ? this.prevShip.size : 4
-        };
-        if (this.prevShip) {
-            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num) {
-                shipDescr.size -= 1
-                shipDescr.num = 1
-
-            } else {
-                shipDescr.num = this.prevShip.num + 1
-            }
+    createNewCurrentShip() {
+        this.ships.push(cloneDeep(this.currentShip))
+        this.currentShip.rotation = 0
+        this.currentShip.position = undefined
+        if (MAX_COUNT_BY_SHIP_TYPE[this.currentShip.size] === this.currentShip.num) {
+            this.currentShip.size -= 1
+            this.currentShip.num = 1
+        } else {
+            this.currentShip.num += 1
         }
-        this.currentShip = new Ship(shipDescr)
         // TODO проверить, скорее всего оно нужно
-        this.drawShip(this.currentShip)
-    }
-
-    addShipByPostion(i: number, j: number) {
-        this.updateCurrentShipPosition(i, j)
-        if (this.currentShip?.isCanPlace) {
-            this.prevShip = this.currentShip
-            // TODO проверить нужно ли оно тут
-            this.fieldCanvas.updateInitialCells()
-            this.ships.push(this.currentShip)
-            this.createShipByPosition(i, j)
-            return true
-        }
-        return false
+        //this.drawShip(this.currentShip)
     }
 
     rotateCurrentShip() {
-        if (this.currentShip) {
-            this.currentShip.rotate()
-            this.fieldCanvas.cleanUpCells()
-            this.drawShip(this.currentShip)
-        }
+        this.currentShip.rotate()
     }
 
     private getShift(ship: Ship){
@@ -132,15 +116,20 @@ export class ShipManager {
         const shift: number = Math.max((i*(1 - rotation)+j*rotation)+size-10, 0)
         return shift;
     }
-    
+
+    private getMinPoint(ship: Ship){
+        return -this.getShift(ship)
+    }
+
+    private getMaxPoint(ship: Ship){
+        return ship.size - this.getShift(ship)
+    }
+
     private checkCollision(ship1: Ship, ship2: Ship) : boolean{
-        if(!ship1.position || !ship2.position){
-            return false
-        }
-        const i1 = (-this.getShift(ship1)) * (1 - ship1.rotation) + ship1.position.i - 1
-        const j1 = (-this.getShift(ship1)) * ship1.rotation + ship1.position.j - 1
-        const i2 = (-this.getShift(ship2)) * (1 - ship2.rotation) + ship2.position.i - 1
-        const j2 = (-this.getShift(ship2)) * ship2.rotation + ship2.position.j - 1
+        const i1 = this.getMinPoint(ship1) * (1 - ship1.rotation) + ship1.position!.i - 1
+        const j1 = this.getMinPoint(ship1) * ship1.rotation + ship1.position!.j - 1
+        const i2 = this.getMinPoint(ship2) * (1 - ship2.rotation) + ship2.position!.i - 1
+        const j2 = this.getMinPoint(ship2) * ship2.rotation + ship2.position!.j - 1
         const j = j1 - j2;
         const i = i1 - i2;
         return ((j >= 0 && Math.abs(j) <= (ship2.size - 1) * ship2.rotation + 1) || 
@@ -149,64 +138,47 @@ export class ShipManager {
                 (i < 0 && Math.abs(i) <= (ship1.size - 1) * (1 - ship1.rotation) + 1))
     }
 
-    private testFree(field: TCells, i: number, j: number): boolean {
-        //for (const ship1 of this.ships) {
-        //    if(this.checkCollision(ship1, ship2)){
-        //        return false
-        //    }
-        //}
-        for (let x = i == 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
-            for (let y = j == 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
-                if (field[i + x][j + y] == ECellType.withShip) {
-                    this.fieldCanvas.setCell(i, j, ECellType.killed)
-                    return false
-                }
+    private testFree(ship: Ship): boolean {
+        if(!ship || !ship.position){
+            return false
+        }
+
+        for (const ship1 of this.ships) {
+            if(this.checkCollision(ship1, ship)){
+                return false
             }
         }
+
         return true
     }
 
     // TODO refactoring required
     private drawShip(ship: Ship) {
-        this.fieldCanvas.cleanUpCells()
-        if (!ship) {
-            return false
-        }
         const { size, rotation, position } = ship!
-        if (!position) {
-            return false
-        }
-        ship.isCanPlace = true
-        const i: number = position.i
-        const j: number = position.j
-        const minPoint: number = -this.getShift(ship)
-        const maxPoint: number = size - this.getShift(ship)
-        for (let k = minPoint; k < maxPoint; k++) {
+        const i: number = position!.i
+        const j: number = position!.j
+        for (let k = this.getMinPoint(ship); k < this.getMaxPoint(ship); k++) {
             const currentPoint: TPosition = {
                 i: 0,
                 j: 0
             }
             currentPoint.i = i + k * (1 - rotation)
             currentPoint.j = j + k * rotation
-            if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-            }else{
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.hitted)
-                ship.isCanPlace = false
-            }
+            this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
         }
-        return ship.isCanPlace
+        return true
     }
     
-    //placeShip(ship: Ship){
-    //    this.fieldCanvas.cleanUpCells()
-    //    this.drawShip(ship)
-    //    if(ship.isCanPlace){
-    //        this.fieldCanvas.updateInitialCells()
-    //        return true
-    //    }
-    //    return false
-    //}
+    placeCurrentShip(){
+        if(this.testFree(this.currentShip)){
+            this.fieldCanvas.cleanUpCells()
+            this.drawShip(this.currentShip)
+            this.fieldCanvas.updateInitialCells()
+            this.createNewCurrentShip()
+            return true
+        }
+        return false
+    }
 
     getCurrentShip(){
         if(this.currentShip){
@@ -222,20 +194,15 @@ export class ShipManager {
 
     randomPlaceShips(){
         const ships: IShip[] = []
-        this.createShipByPosition(0,0)
         while (true) {
             if (Math.random() < 0.5) {
                 this.rotateCurrentShip()
             }
-           
-            if (this.addShipByPostion(Math.floor(Math.random() * 10), Math.floor(Math.random() * 10))) {
-                const ship = this.getCurrentShip()
-                if (!ship) {
-                    break
-                }
-                ships.push(ship)
-                //this.ships.push(new Ship(ship))
-                if (ship.num == 4) {
+            this.setCurrentShipPosition(Math.floor(Math.random() * 10), Math.floor(Math.random() * 10))
+            if (this.placeCurrentShip()) {
+                ships.push(ShipToIShip(this.ships[this.ships.length - 1]))
+                console.log(ShipToIShip(this.ships[this.ships.length - 1]))
+                if (this.ships[this.ships.length - 1].num == 4) {
                     break
                 }
             }

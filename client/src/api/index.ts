@@ -27,6 +27,7 @@ interface IHeaders {
 }
 
 const getHeaders = ({ token, playerToken }: IHeaders) => {
+    console.log(token)
     if (token && playerToken) {
         return {
             'x-auth-player': playerToken,
