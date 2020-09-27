@@ -1,16 +1,16 @@
 import axios from 'axios'
-import io, { Socket } from 'socket.io-client';
+import io, { Socket } from 'socket.io-client'
 
 import { IShip } from '../entities/ShipManager'
-import { TCells,  ECellTurnType } from '../entities/CellsStore';
-import { gameStorage } from '../GameStorage';
+import { TCells, ECellTurnType } from '../entities/CellsStore'
+import { gameStorage } from '../GameStorage'
 
 export const r = axios.create({
-    baseURL: 'http://localhost:4000'
+    baseURL: 'http://localhost:4000',
 })
 
-
-export const newGame = () => r.post<INewGameResp>('/new_game').then(resp => resp.data)
+export const newGame = () =>
+    r.post<INewGameResp>('/new_game').then((resp) => resp.data)
 
 export interface INewGameResp {
     token: string
@@ -20,11 +20,12 @@ export interface INewGameResp {
 export class GameClient {
     private client: typeof Socket
 
-    constructor(playerToken: string, token: string) {        
+    constructor(playerToken: string, token: string) {
         this.client = io('http://localhost:4000', {
             query: {
-                playerToken, token
-            }
+                playerToken,
+                token,
+            },
         })
     }
 
@@ -37,7 +38,7 @@ export class GameClient {
     }
 
     fire(i: number, j: number) {
-        this.client.emit("fire", i, j)
+        this.client.emit('fire', i, j)
     }
 }
 
@@ -56,21 +57,21 @@ const getHeaders = ({ token, playerToken }: IHeaders) => {
     if (token && playerToken) {
         return {
             'x-auth-player': playerToken,
-            'x-game': token
+            'x-game': token,
         }
     }
 
     return {
-        'x-game': token
+        'x-game': token,
     }
-};
+}
 
-export const getShips = ({ 
-    token, 
-    playerToken 
-}: IHeaders) => r.get<IGetShipsResp>('/ships', {
-    headers: getHeaders({ token, playerToken })
-}).then(resp => resp.data)
+export const getShips = ({ token, playerToken }: IHeaders) =>
+    r
+        .get<IGetShipsResp>('/ships', {
+            headers: getHeaders({ token, playerToken }),
+        })
+        .then((resp) => resp.data)
 
 export interface ITurnResp {
     isEnemyOnline: boolean
@@ -79,20 +80,30 @@ export interface ITurnResp {
     winner?: string
 }
 
-export const turn = () => r.get<ITurnResp>('/turn', {
-    headers: getHeaders({ 
-        token: gameStorage.getGameToken()!, 
-        playerToken: gameStorage.getPlayerToken() 
-    })
-}).then(resp => resp.data)
+export const turn = () =>
+    r
+        .get<ITurnResp>('/turn', {
+            headers: getHeaders({
+                token: gameStorage.getGameToken()!,
+                playerToken: gameStorage.getPlayerToken(),
+            }),
+        })
+        .then((resp) => resp.data)
 
 export interface IFireResp {
     type: ECellTurnType
 }
 
-export const fire = (i: number, j: number) => r.post<IFireResp>('/fire', {i, j}, {
-    headers: getHeaders({
-        token: gameStorage.getGameToken()!,
-        playerToken: gameStorage.getPlayerToken() 
-    })
-}).then(resp => resp.data)
+export const fire = (i: number, j: number) =>
+    r
+        .post<IFireResp>(
+            '/fire',
+            { i, j },
+            {
+                headers: getHeaders({
+                    token: gameStorage.getGameToken()!,
+                    playerToken: gameStorage.getPlayerToken(),
+                }),
+            }
+        )
+        .then((resp) => resp.data)

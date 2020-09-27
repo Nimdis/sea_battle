@@ -11,4 +11,4 @@ const LoadingStyled = styled.div`
     font-size: 24px;
 `
 
-export const Loading: FC = () => <LoadingStyled>Loading...</LoadingStyled> 
+export const Loading: FC = () => <LoadingStyled>Loading...</LoadingStyled>

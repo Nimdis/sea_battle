@@ -1,19 +1,26 @@
-import {Entity, JoinColumn, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, getConnection} from "typeorm";
-import { Player } from "./Player";
-import { Game } from "./Game";
-import { TPosition, TRotation, TShipSize } from "../logic/ship"
+import {
+    Entity,
+    JoinColumn,
+    PrimaryGeneratedColumn,
+    Column,
+    BaseEntity,
+    ManyToOne,
+    getConnection,
+} from 'typeorm'
+import { Player } from './Player'
+import { Game } from './Game'
+import { TPosition, TRotation, TShipSize } from '../logic/ship'
 
 @Entity()
 export class Ship extends BaseEntity {
-
     @PrimaryGeneratedColumn()
-    id: number;
-    
-    @ManyToOne(type => Game, game => game.ships, { nullable: false })
+    id: number
+
+    @ManyToOne((type) => Game, (game) => game.ships, { nullable: false })
     @JoinColumn()
     game: Game
 
-    @ManyToOne(type => Player, player => player.ships, { nullable: false })
+    @ManyToOne((type) => Player, (player) => player.ships, { nullable: false })
     @JoinColumn()
     player: Player
 
@@ -44,7 +51,7 @@ export const buildInsert = async (ships: Ship[]): Promise<Ship[]> => {
     return await Ship.find({
         where: {
             player: ship.player,
-            game: ship.game
-        }
+            game: ship.game,
+        },
     })
 }

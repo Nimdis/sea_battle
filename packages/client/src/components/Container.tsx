@@ -5,12 +5,14 @@ export interface IContainerProps {
 }
 
 export const Container = styled.div<IContainerProps>`
-  margin: 16px auto 0 auto;
-  width: 440px;
-  height: 200px;
+    margin: 16px auto 0 auto;
+    width: 440px;
+    height: 200px;
 
-  ${props => props.centred && css`
-    display: flex;
-    justify-content: center;
-  `}
+    ${(props) =>
+        props.centred &&
+        css`
+            display: flex;
+            justify-content: center;
+        `}
 `

@@ -19,10 +19,9 @@ class InitScreenStore {
     }
 }
 
-
 export const InitScreen: FC = () => {
     const gameStore = useGameStore()
-    const initScreen = useMemo(() => new InitScreenStore(gameStore), []);
+    const initScreen = useMemo(() => new InitScreenStore(gameStore), [])
 
     return useObserver(() => {
         return (
@@ -33,5 +32,5 @@ export const InitScreen: FC = () => {
                 </Field>
             </GameField>
         )
-    });
-};
+    })
+}

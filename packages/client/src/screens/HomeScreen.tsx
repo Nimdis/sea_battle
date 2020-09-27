@@ -1,7 +1,7 @@
 import React, { FC, useMemo } from 'react'
 import { Redirect } from 'react-router-dom'
-import { observable, action } from 'mobx';
-import { useObserver } from 'mobx-react-lite';
+import { observable, action } from 'mobx'
+import { useObserver } from 'mobx-react-lite'
 
 import { gameStorage } from '../GameStorage'
 import { newGame } from '../api'
@@ -17,7 +17,7 @@ class HomeScreenStore {
     }
 
     getToken() {
-        return this.token;
+        return this.token
     }
 
     handleClick = async () => {
@@ -34,7 +34,9 @@ export const HomeScreen: FC = () => {
 
     return useObserver(() => (
         <Container centred>
-            {homeScreen.getToken() && <Redirect push to={`/game/${homeScreen.getToken()}`} />}
+            {homeScreen.getToken() && (
+                <Redirect push to={`/game/${homeScreen.getToken()}`} />
+            )}
             <div>
                 <Button onClick={homeScreen.handleClick}>New game</Button>
             </div>

@@ -6,12 +6,12 @@ import { Player } from './entities/Player'
 
 export const attachGame: RequestHandler = async (req: IReq, res, next) => {
     const token = req.headers['x-game']
-    
+
     const game = await Game.findOne({
         where: {
-            token
+            token,
         },
-        relations: ['players']
+        relations: ['players'],
     })
 
     if (!game) {
@@ -29,16 +29,16 @@ export const attachPlayer: RequestHandler = async (req: IReq, res, next) => {
     if (playerToken) {
         const player = await Player.findOne({
             where: {
-                token: playerToken
+                token: playerToken,
             },
-            relations: ['ships', 'cellsStore']
+            relations: ['ships', 'cellsStore'],
         })
         if (!player) {
             return res.status(401).send()
         }
         req.player = player
         next()
-        return 
+        return
     }
 
     const player = new Player()
@@ -46,9 +46,9 @@ export const attachPlayer: RequestHandler = async (req: IReq, res, next) => {
     await player.save()
     req.player = (await Player.findOne({
         where: {
-            token: player.token
+            token: player.token,
         },
-        relations: ['ships', 'cellsStore']
+        relations: ['ships', 'cellsStore'],
     }))!
     next()
 }

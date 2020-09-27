@@ -12,11 +12,15 @@ export class EnemyShipManager {
 
     static async initialize(playerToken: string) {
         const enemyShipManager = new EnemyShipManager()
-        const turns = (await getTurns()).turns.filter(turn => 
-            turn.player.token === playerToken
+        const turns = (await getTurns()).turns.filter(
+            (turn) => turn.player.token === playerToken
         )
-        for(const turn of turns){
-            enemyShipManager.fieldCanvas.setCell(turn.position.i, turn.position.j, getECellType(turn.type))
+        for (const turn of turns) {
+            enemyShipManager.fieldCanvas.setCell(
+                turn.position.i,
+                turn.position.j,
+                getECellType(turn.type)
+            )
         }
         return enemyShipManager
     }
@@ -26,7 +30,7 @@ export class EnemyShipManager {
     }
 
     setCells(cells: TCells) {
-        this.fieldCanvas.setCells(cells);
+        this.fieldCanvas.setCells(cells)
     }
 
     setCell(i: number, j: number, value: ECellType) {
@@ -35,11 +39,11 @@ export class EnemyShipManager {
 
     // shot(i: number, j: number) {
     //     this.gameClient!.fire(i, j)
-        // try {
-        //     const type = getECellType((await fire(i, j)).type)
-        //     this.fieldCanvas.setCell(i, j, type)
-        // } catch (error) {
-        //     console.log(error)
-        // }
+    // try {
+    //     const type = getECellType((await fire(i, j)).type)
+    //     this.fieldCanvas.setCell(i, j, type)
+    // } catch (error) {
+    //     console.log(error)
+    // }
     // }
 }

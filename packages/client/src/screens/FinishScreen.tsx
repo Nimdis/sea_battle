@@ -5,4 +5,4 @@ import { Cell } from '../components/Cell'
 
 export const FinishScreen: FC = () => {
     return null
-};
+}

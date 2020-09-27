@@ -37,11 +37,11 @@ export class ShipManager {
     }
 
     setCell(i: number, j: number, type: ECellType) {
-        this.fieldCanvas.setCell(i, j, type);
+        this.fieldCanvas.setCell(i, j, type)
     }
 
     setCells(cells: TCells) {
-        this.fieldCanvas.setCells(cells);
+        this.fieldCanvas.setCells(cells)
     }
 
     upsertShipByPosition(i: number, j: number) {
@@ -55,14 +55,17 @@ export class ShipManager {
         const shipDescr: IShip = {
             num: this.prevShip ? this.prevShip.num : 1,
             position: {
-                i, j
+                i,
+                j,
             },
             rotation: 0,
-            size: this.prevShip ? this.prevShip.size : 4
-        };
-        
+            size: this.prevShip ? this.prevShip.size : 4,
+        }
+
         if (this.prevShip) {
-            if (MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num) {
+            if (
+                MAX_COUNT_BY_SHIP_TYPE[this.prevShip.size] === this.prevShip.num
+            ) {
                 shipDescr.size -= 1
                 shipDescr.num = 1
             } else {
@@ -74,7 +77,7 @@ export class ShipManager {
     }
 
     leaveCurrentShip() {
-        if(this.currentShip){
+        if (this.currentShip) {
             this.currentShip.position = undefined
         }
         this.fieldCanvas.cleanUpCells()
@@ -88,7 +91,7 @@ export class ShipManager {
     }
 
     addShipByPosition(i: number, j: number) {
-        if(this.currentShip && this.currentShip.isCanPlace){
+        if (this.currentShip && this.currentShip.isCanPlace) {
             this.prevShip = this.currentShip
             // TODO проверить нужно ли оно тут
             this.fieldCanvas.updateInitialCells()
@@ -104,9 +107,9 @@ export class ShipManager {
         }
     }
 
-    placeShips(ships: IShip[]){
+    placeShips(ships: IShip[]) {
         for (const ship of ships) {
-            if(this.drawShip(new Ship(ship))){
+            if (this.drawShip(new Ship(ship))) {
                 this.fieldCanvas.updateInitialCells()
             }
         }
@@ -136,20 +139,37 @@ export class ShipManager {
         ship.isCanPlace = true
         const i: number = position.i
         const j: number = position.j
-        const shift: number = Math.max((i*(1 - rotation)+j*rotation)+size-10, 0)
-        const minPoint: number = 0-shift
-        const maxPoint: number = size-shift
+        const shift: number = Math.max(
+            i * (1 - rotation) + j * rotation + size - 10,
+            0
+        )
+        const minPoint: number = 0 - shift
+        const maxPoint: number = size - shift
         for (let k = minPoint; k < maxPoint; k++) {
             const currentPoint: TPosition = {
                 i: 0,
-                j: 0
+                j: 0,
             }
             currentPoint.i = i + k * (1 - rotation)
             currentPoint.j = j + k * rotation
-            if(this.testFree(this.fieldCanvas.initialCells, currentPoint.i, currentPoint.j)){
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.withShip)
-            }else{
-                this.fieldCanvas.setCell(currentPoint.i, currentPoint.j, ECellType.hitted)
+            if (
+                this.testFree(
+                    this.fieldCanvas.initialCells,
+                    currentPoint.i,
+                    currentPoint.j
+                )
+            ) {
+                this.fieldCanvas.setCell(
+                    currentPoint.i,
+                    currentPoint.j,
+                    ECellType.withShip
+                )
+            } else {
+                this.fieldCanvas.setCell(
+                    currentPoint.i,
+                    currentPoint.j,
+                    ECellType.hitted
+                )
                 ship.isCanPlace = false
             }
         }
@@ -158,9 +178,9 @@ export class ShipManager {
 }
 
 export interface IShip {
-    size: TShipSize,
-    position?: TPosition,
-    rotation: TRotation,
+    size: TShipSize
+    position?: TPosition
+    rotation: TRotation
     num: number
 }
 

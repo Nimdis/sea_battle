@@ -10,13 +10,9 @@ const GameFieldStyled = styled.div`
 `
 
 export interface IGameFieldProps {
-    children: ReactNode;
+    children: ReactNode
 }
 
 export const GameField: FC<IGameFieldProps> = ({ children }) => {
-    return (
-        <GameFieldStyled>
-            {children}
-        </GameFieldStyled>
-    );
-};
+    return <GameFieldStyled>{children}</GameFieldStyled>
+}

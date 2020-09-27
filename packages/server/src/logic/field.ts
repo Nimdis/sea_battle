@@ -1,6 +1,5 @@
 import cloneDeep from 'lodash/fp/cloneDeep'
-import { CellsStore, TCells } from './CellsStore';
-
+import { CellsStore, TCells } from './CellsStore'
 
 export class FieldCanvas extends CellsStore {
     initialCells: TCells
@@ -17,5 +16,4 @@ export class FieldCanvas extends CellsStore {
     cleanUpCells() {
         this.setCells(cloneDeep(this.initialCells))
     }
-
 }

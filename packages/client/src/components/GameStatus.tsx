@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC } from 'react'
 
 import styled from 'styled-components'
 
@@ -10,8 +10,8 @@ const GameStatusStyled = styled.div`
 `
 
 export interface IGameStatusProps {
-    winner?: string;
-    isMyTurn: boolean;
+    winner?: string
+    isMyTurn: boolean
 }
 
 export const GameStatus: FC<IGameStatusProps> = ({ winner, isMyTurn }) => {
@@ -23,5 +23,5 @@ export const GameStatus: FC<IGameStatusProps> = ({ winner, isMyTurn }) => {
                 <div>{isMyTurn ? 'Your turn' : 'Enemy turn'}</div>
             )}
         </GameStatusStyled>
-    );
-};
+    )
+}

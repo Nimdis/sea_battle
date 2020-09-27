@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useMemo } from 'react'
 
 import { useObserver } from 'mobx-react-lite'
-import { toJS } from "mobx"
+import { toJS } from 'mobx'
 
 import { GameField } from '../components/GameField'
 import { Field } from '../components/Field'
@@ -20,27 +20,30 @@ class BattleScreenStore {
         // this.battleManager.shot(i, j)
     }
 
-    getCells(){
+    getCells() {
         return this.battleManager.getCells()
     }
 }
 
 export const BattleScreen: FC = () => {
     const gameStore = useGameStore()
-    const battleScreenStore = useMemo(() => new BattleScreenStore(gameStore.getEnemyShipManager()), [])
-    
+    const battleScreenStore = useMemo(
+        () => new BattleScreenStore(gameStore.getEnemyShipManager()),
+        []
+    )
+
     const handleClick = useCallback((i: number, j: number) => {
         // TODO check if the cell is empty
-        if(gameStore.isMyTurn){
+        if (gameStore.isMyTurn) {
             battleScreenStore.handleClick(i, j)
         }
     }, [])
 
     return useObserver(() => (
         <>
-            <GameStatus 
-                isMyTurn={gameStore.isMyTurn} 
-                winner={gameStore.getWinner()} 
+            <GameStatus
+                isMyTurn={gameStore.isMyTurn}
+                winner={gameStore.getWinner()}
             />
             <GameField>
                 <Field cells={gameStore.getCells()} />

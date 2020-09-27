@@ -1,13 +1,17 @@
 import React, { FC, useMemo, useEffect, useRef } from 'react'
 import { observable, action } from 'mobx'
 import { useObserver } from 'mobx-react-lite'
-import { Redirect, useParams } from 'react-router';
+import { Redirect, useParams } from 'react-router'
 
 import { GameContext, useGameStore } from '../GameContext'
 
 import { InitScreen } from './InitScreen'
 import { BattleScreen } from './BattleScreen'
-import { GameStoreInitializer, GameStore, TGamePhase } from '../entities/GameStore';
+import {
+    GameStoreInitializer,
+    GameStore,
+    TGamePhase,
+} from '../entities/GameStore'
 import { Container } from '../components/Container'
 import { Loading } from '../components/Loading'
 
@@ -23,26 +27,29 @@ class GameScreenStore {
     @observable hasNoToken: boolean = false
 
     get isLoading() {
-        return this.gameStoreIntializer.isLoading;
+        return this.gameStoreIntializer.isLoading
     }
 
     get hasError() {
-        return this.gameStoreIntializer.hasError;
+        return this.gameStoreIntializer.hasError
     }
 
     @action
     async initGame(token?: string) {
         if (!token) {
             this.hasNoToken = true
-            return;
+            return
         }
-        this.gameStore = await this.gameStoreIntializer.init(token, 'initialization')
+        this.gameStore = await this.gameStoreIntializer.init(
+            token,
+            'initialization'
+        )
     }
 }
 
 const Error: FC = () => {
     return <div>Error</div>
-};
+}
 
 const gameScreens = (gameStore?: GameStore) => {
     if (!gameStore) {
@@ -91,6 +98,6 @@ export const GameScreen: FC = () => {
                     {gameScreens(gameStore)}
                 </GameContext.Provider>
             </Container>
-        );
+        )
     })
-};
+}

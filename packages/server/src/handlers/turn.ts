@@ -1,15 +1,15 @@
-import { RequestHandler } from "express"
+import { RequestHandler } from 'express'
 import diffInSec from 'date-fns/fp/differenceInSeconds'
 
 import { IReq } from '../types'
-import { PlayerTurn } from "../entities/PlayerTurn"
-import { ECellTurnType } from "../logic/CellsStore"
+import { PlayerTurn } from '../entities/PlayerTurn'
+import { ECellTurnType } from '../logic/CellsStore'
 
 export const turn: RequestHandler = async (req: IReq, res) => {
     const { game, player } = req
     let isEnemyOnline = false
 
-    const [enemyPlayer] = game.players.filter(p => p.id !== player.id)
+    const [enemyPlayer] = game.players.filter((p) => p.id !== player.id)
     if (enemyPlayer) {
         const diff = diffInSec(enemyPlayer.lastVisitAt, new Date())
         if (diff < 40) {
@@ -19,12 +19,12 @@ export const turn: RequestHandler = async (req: IReq, res) => {
 
     const turns = await PlayerTurn.find({
         where: {
-            game
+            game,
         },
         order: {
-            createdAt: 'DESC'
+            createdAt: 'DESC',
         },
-        relations: ['player']
+        relations: ['player'],
     })
 
     const [playerTurn] = turns
@@ -43,8 +43,8 @@ export const turn: RequestHandler = async (req: IReq, res) => {
     let playerShots = 0
     let enemyShots = 0
     for (const turn of turns) {
-        if(turn.type == ECellTurnType.hitted){
-            if(turn.player.id === player.id){
+        if (turn.type == ECellTurnType.hitted) {
+            if (turn.player.id === player.id) {
                 playerShots++
             } else {
                 enemyShots++
@@ -52,19 +52,19 @@ export const turn: RequestHandler = async (req: IReq, res) => {
         }
     }
 
-    if(playerShots < 20 && enemyShots < 20) {
-        res.json({
-            isEnemyOnline,
-            isMyTurn,
-            turns
-        })
-    } else {
-        const winner: string = playerShots >= 20 ? "me" : "enemy"
+    if (playerShots < 20 && enemyShots < 20) {
         res.json({
             isEnemyOnline,
             isMyTurn,
             turns,
-            winner
+        })
+    } else {
+        const winner: string = playerShots >= 20 ? 'me' : 'enemy'
+        res.json({
+            isEnemyOnline,
+            isMyTurn,
+            turns,
+            winner,
         })
     }
 }

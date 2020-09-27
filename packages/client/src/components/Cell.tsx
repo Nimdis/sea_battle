@@ -5,16 +5,16 @@ import styled, { css } from 'styled-components'
 import { ECellType } from '../entities/CellsStore'
 
 export interface ICellProps {
-    type: ECellType;
-    clickable: boolean;
-    onMouseOver?: (e: MouseEvent<HTMLDivElement>) => void;
-    onClick?: (e: MouseEvent<HTMLDivElement>) => void;
+    type: ECellType
+    clickable: boolean
+    onMouseOver?: (e: MouseEvent<HTMLDivElement>) => void
+    onClick?: (e: MouseEvent<HTMLDivElement>) => void
     onMouseLeave?: () => void
 }
 
 interface ICellStyledProps {
     type: ECellType
-    clickable: boolean;
+    clickable: boolean
 }
 
 const CellStyled = styled.div<ICellStyledProps>`
@@ -22,16 +22,17 @@ const CellStyled = styled.div<ICellStyledProps>`
     width: 18px;
     border: 1px solid black;
 
+    ${(props) =>
+        props.clickable &&
+        css`
+            cursor: pointer;
 
-    ${props => props.clickable && css`
-        cursor: pointer;
+            &:hover {
+                background-color: gray;
+            }
+        `}
 
-        &:hover {
-            background-color: gray;
-        }
-    `}
-
-    ${props => {
+    ${(props) => {
         switch (props.type) {
             case ECellType.withShip:
                 return css`
@@ -69,4 +70,4 @@ const CellStyled = styled.div<ICellStyledProps>`
     }}
 `
 
-export const Cell: FC<ICellProps> = props => <CellStyled {...props} />;
+export const Cell: FC<ICellProps> = (props) => <CellStyled {...props} />

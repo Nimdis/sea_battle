@@ -1,6 +1,5 @@
 import cloneDeep from 'lodash/fp/cloneDeep'
-import { CellsStore, TCells } from './CellsStore';
-
+import { CellsStore, TCells } from './CellsStore'
 
 export class FieldStore extends CellsStore {
     static initialize(cs: CellsStore) {
@@ -14,7 +13,6 @@ export class FieldStore extends CellsStore {
     cloneCells() {
         return cloneDeep(this.getCells())
     }
-
 }
 
 export class FieldCanvas extends CellsStore {
