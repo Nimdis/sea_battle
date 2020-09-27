@@ -13,7 +13,8 @@ import { Loading } from '../components/Loading'
 
 class GameScreenStore {
     gameStoreIntializer: GameStoreInitializer
-    gameStore?: GameStore
+    // FIXME remove observable
+    @observable gameStore?: GameStore
 
     constructor() {
         this.gameStoreIntializer = new GameStoreInitializer()
@@ -43,8 +44,12 @@ const Error: FC = () => {
     return <div>Error</div>
 };
 
-const GameScreens: FC = () => {
-    const gameStore = useGameStore()
+const gameScreens = (gameStore?: GameStore) => {
+    if (!gameStore) {
+        return null
+    }
+
+    console.log(gameStore.getPhase())
 
     switch (gameStore.getPhase()) {
         case 'initialization':
@@ -78,10 +83,12 @@ export const GameScreen: FC = () => {
             return <Error />
         }
 
+        const { gameStore } = gameScreenStore
+
         return (
             <Container>
-                <GameContext.Provider value={gameScreenStore.gameStore!}>
-                    <GameScreens />
+                <GameContext.Provider value={gameStore!}>
+                    {gameScreens(gameStore)}
                 </GameContext.Provider>
             </Container>
         );

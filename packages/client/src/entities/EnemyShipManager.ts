@@ -1,6 +1,6 @@
 import { FieldCanvas } from './FieldStore'
-import { fire, turn as getTurns } from '../api/index'
-import { CellsStore, getECellType, ECellTurnType } from './CellsStore'
+import { GameClient, turn as getTurns } from '../api/index'
+import { CellsStore, getECellType } from './CellsStore'
 import { ECellType, TCells } from './CellsStore'
 
 export class EnemyShipManager {
@@ -10,7 +10,7 @@ export class EnemyShipManager {
         this.fieldCanvas = new FieldCanvas(CellsStore.makeInitial().getCells())
     }
 
-    static async initialize(playerToken?: string) {
+    static async initialize(playerToken: string) {
         const enemyShipManager = new EnemyShipManager()
         const turns = (await getTurns()).turns.filter(turn => 
             turn.player.token === playerToken
@@ -33,12 +33,13 @@ export class EnemyShipManager {
         this.fieldCanvas.setCell(i, j, value)
     }
 
-    async shot(i: number, j: number) {
-        try {
-            const type = getECellType((await fire(i, j)).type)
-            this.fieldCanvas.setCell(i, j, type)
-        } catch (error) {
-            console.log(error)
-        }
-    }
+    // shot(i: number, j: number) {
+    //     this.gameClient!.fire(i, j)
+        // try {
+        //     const type = getECellType((await fire(i, j)).type)
+        //     this.fieldCanvas.setCell(i, j, type)
+        // } catch (error) {
+        //     console.log(error)
+        // }
+    // }
 }

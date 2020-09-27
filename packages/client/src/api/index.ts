@@ -17,26 +17,27 @@ export interface INewGameResp {
     playerToken: string
 }
 
-
 export class GameClient {
     private client: typeof Socket
-    isMyTurn: Boolean
 
-    constructor(handleFire: any, handleEnemyOnline: any, playerToken: string, token: string) {        
+    constructor(playerToken: string, token: string) {        
         this.client = io('http://localhost:4000', {
             query: {
                 playerToken, token
             }
         })
-        this.isMyTurn = false
-        this.client.on("fire", handleFire)
-        this.client.on('enemyOnline', handleEnemyOnline)
+    }
+
+    onOnline(fn: (a: any) => void) {
+        this.client.on('online', fn)
+    }
+
+    onEnemyPlayerOffline(fn: () => void) {
+        this.client.on('enemyPlayerOffline', fn)
     }
 
     fire(i: number, j: number) {
         this.client.emit("fire", i, j)
-
-        this.isMyTurn = false
     }
 }
 
@@ -52,7 +53,6 @@ interface IHeaders {
 }
 
 const getHeaders = ({ token, playerToken }: IHeaders) => {
-    console.log(token)
     if (token && playerToken) {
         return {
             'x-auth-player': playerToken,

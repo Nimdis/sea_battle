@@ -17,7 +17,7 @@ class BattleScreenStore {
     }
 
     handleClick = (i: number, j: number) => {
-        this.battleManager.shot(i, j)
+        // this.battleManager.shot(i, j)
     }
 
     getCells(){

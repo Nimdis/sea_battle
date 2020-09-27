@@ -17,28 +17,47 @@ export type TGamePhase = 'initialization' | 'game' | 'finished';
 
 export class GameStoreInitializer {
     @observable isLoading: boolean = true
-    @observable hasError: boolean = true
+    @observable hasError: boolean = false
 
     async init(token: string, phase: TGamePhase): Promise<GameStore | undefined> {
         const playerToken = gameStorage.getPlayerToken()
         const gameToken = gameStorage.getGameToken()
 
         try {
-            const enemyShipManager = await EnemyShipManager.initialize(gameStorage.getPlayerToken())
             const resp = await getShips({
                 token,
                 playerToken: gameToken === token ? playerToken : undefined
             })
+
             gameStorage.setPlayerToken(resp.playerToken)
             gameStorage.setGameToken(token)
-            enemyShipManager.setCells(resp.cells)
-            return new GameStore(
+
+            const enemyShipManager = await EnemyShipManager.initialize(playerToken ?? resp.playerToken)
+            const shipManager = new ShipManager(CellsStore.makeInitial().getCells())
+
+            shipManager.setCells(resp.cells)
+
+            const gameStore = new GameStore(
                 phase,
                 enemyShipManager,
-                new ShipManager(CellsStore.makeInitial().getCells())
+                shipManager
             )
+
+            const gc = new GameClient(playerToken ?? resp.playerToken, gameToken!)
+            gc.onOnline((a: any) => {
+                gameStore.setIsEnemyOnline(true)
+                if (gameStore.getPhase() === 'initialization') {
+                    gameStore.setPhase('game')
+                }
+            })
+
+            gc.onEnemyPlayerOffline(() => {
+                gameStore.setIsEnemyOnline(false)
+            })
+
+            return gameStore
         } catch (err) {
-            console.log(err)
+            console.error(err)
             this.setHasError(true)
         } finally {
             this.setLoading(false)
@@ -57,11 +76,11 @@ export class GameStoreInitializer {
 }
 
 export class GameStore {
-    private client? : GameClient
     private enemyShipManager: EnemyShipManager
     private shipManager: ShipManager
     isMyTurn: boolean
 
+    @observable private isEnemyOnline: boolean = false
     @observable private phase: TGamePhase 
 
     constructor(phase: TGamePhase, enemyShipManager: EnemyShipManager, shipManager: ShipManager) {
@@ -71,23 +90,21 @@ export class GameStore {
         this.isMyTurn = false
     }
 
-    initializeGameClient(){
-        if(!gameStorage.getPlayerToken() || !gameStorage.getGameToken){
-            return
-        }
-        this.client = new GameClient(
-            this.handleFire, 
-            this.handleEnemyOnline, 
-            gameStorage.getPlayerToken()!, 
-            gameStorage.getGameToken()!)
-    }
-
     getEnemyShipManager(){
         return this.enemyShipManager
     }
     
     getPhase() {
         return this.phase
+    }
+
+    getIsEnemyOnline() {
+        return this.isEnemyOnline
+    }
+
+    @action
+    setIsEnemyOnline(val: boolean) {
+        this.isEnemyOnline = val
     }
 
     getEnemyCells() {
