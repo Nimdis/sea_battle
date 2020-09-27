@@ -1,6 +1,6 @@
 import { FieldCanvas } from './FieldStore'
 import { fire, turn as getTurns } from '../api/index'
-import { CellsStore, getECellType } from './CellsStore'
+import { CellsStore, getECellType, ECellTurnType } from './CellsStore'
 import { ECellType, TCells } from './CellsStore'
 
 export class EnemyShipManager {

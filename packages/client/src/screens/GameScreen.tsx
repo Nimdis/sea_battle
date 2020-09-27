@@ -46,7 +46,7 @@ const Error: FC = () => {
 const GameScreens: FC = () => {
     const gameStore = useGameStore()
 
-    switch (gameStore.phase) {
+    switch (gameStore.getPhase()) {
         case 'initialization':
             return <InitScreen />
         case 'game':
@@ -80,7 +80,7 @@ export const GameScreen: FC = () => {
 
         return (
             <Container>
-                <GameContext.Provider value={gameScreenStore.gameStore}>
+                <GameContext.Provider value={gameScreenStore.gameStore!}>
                     <GameScreens />
                 </GameContext.Provider>
             </Container>

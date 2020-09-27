@@ -1,10 +1,9 @@
 import { observable, action } from 'mobx'
-import io, { Socket } from 'socket.io-client';
 
 import { gameStorage } from '../GameStorage'
-import { getShips, turn, ITurnResp } from '../api'
+import { getShips, turn, ITurnResp, GameClient } from '../api'
 
-import { CellsStore, getECellType } from './CellsStore'
+import { CellsStore, getECellType, ECellTurnType } from './CellsStore'
 import { EnemyShipManager } from './EnemyShipManager'
 import { ShipManager } from './ShipManager'
 
@@ -13,18 +12,6 @@ import { ShipManager } from './ShipManager'
 // На сервере взять эти токены и сделать комнату по uid игры
 // Вызвать эвент fire, после которого будет приходить апдейт на всех игроков в комнате c результатом действия, 
 // НО если это действие игрока который его совершил, то у него на поле врага изменение, в противном случае на своём
-
-class GameClient {
-    private client: typeof Socket
-
-    constructor() {
-        this.client = io('http://localhost:4000')
-    }
-
-    fire() {
-
-    }
-}
 
 export type TGamePhase = 'initialization' | 'game' | 'finished';
 
@@ -69,42 +56,11 @@ export class GameStoreInitializer {
     }
 }
 
-class EnemyWatcher {
-    private interval?: number
-    @observable private enemy?: ITurnResp
-
-    start(onEnemyOnline: () => void) {
-        const watcher = async () => {
-            this.setEnemy(await turn())
-
-            if (this.enemy?.isEnemyOnline) {
-                onEnemyOnline()
-            }
-        }
-
-        watcher()
-
-        setInterval(watcher, 5 * 1000)
-    }
-
-    stop() {
-        clearInterval(this.interval)
-    }
-
-    getEnemy() {
-        return this.enemy
-    }
-
-    @action
-    private setEnemy(enemy: ITurnResp) {
-        this.enemy = enemy
-    }
-}
-
 export class GameStore {
-    private enemyWatcher = new EnemyWatcher()
+    private client? : GameClient
     private enemyShipManager: EnemyShipManager
     private shipManager: ShipManager
+    isMyTurn: boolean
 
     @observable private phase: TGamePhase 
 
@@ -112,9 +68,24 @@ export class GameStore {
         this.phase = phase
         this.enemyShipManager = enemyShipManager
         this.shipManager = shipManager
-        this.enemyWatcher.start(this.handleEnemyOnline)
+        this.isMyTurn = false
     }
 
+    initializeGameClient(){
+        if(!gameStorage.getPlayerToken() || !gameStorage.getGameToken){
+            return
+        }
+        this.client = new GameClient(
+            this.handleFire, 
+            this.handleEnemyOnline, 
+            gameStorage.getPlayerToken()!, 
+            gameStorage.getGameToken()!)
+    }
+
+    getEnemyShipManager(){
+        return this.enemyShipManager
+    }
+    
     getPhase() {
         return this.phase
     }
@@ -131,13 +102,9 @@ export class GameStore {
     setPhase(phase: TGamePhase) {
         this.phase = phase
     }
-
-    isMyTurn() {
-        return Boolean(this.enemyWatcher.getEnemy()?.isMyTurn)
-    }
     
     getWinner() {
-        return this.enemyWatcher.getEnemy()?.winner
+        return "hello"
     }
 
     @action.bound
@@ -145,11 +112,19 @@ export class GameStore {
         this.setPhase('game')
     }
 
-    private handleEnemyOnline = () => {
+    private handleFire = (i: number, j: number, result: ECellTurnType) => {
+        if(this.isMyTurn){
+            this.enemyShipManager.setCell(i, j, getECellType(result))
+            return
+        }
+        this.shipManager.setCell(i, j, getECellType(result))
+    }
+
+    private handleEnemyOnline = async () => {
         if (this.phase === 'initialization') {
             this.setPhase('game')
         }
-        const turns = this.enemyWatcher.getEnemy()!.turns.filter(turn => 
+        const turns = (await turn()).turns.filter(turn => 
             turn.player.token !== gameStorage.getPlayerToken()
         )
         for(const turn of turns){

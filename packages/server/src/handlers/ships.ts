@@ -11,7 +11,7 @@ export const ships: RequestHandler = async (req: IReq, res) => {
         if (!player && game.players.length === 2) {
             return res.status(401).send()
         }
-    console.log(1)
+
         // TODO move player token to header
         if (player && player.ships.length && player.cellsStore?.cells) {
             return res.json({

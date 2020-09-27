@@ -7,23 +7,13 @@ import { GameField } from '../components/GameField'
 import { Field } from '../components/Field'
 import { GameStatus } from '../components/GameStatus'
 import { useGameStore } from '../GameContext'
-import { BattleScreenStore } from '../entities/battleScreen'
+import { EnemyShipManager } from '../entities/EnemyShipManager'
 
 class BattleScreenStore {
-    private battleManager: BattleManager
-    // private localField: CellsStore
+    private battleManager: EnemyShipManager
 
-    constructor(battleManager: BattleManager) {
+    constructor(battleManager: EnemyShipManager) {
         this.battleManager = battleManager
-        this.localField = new CellsStore(cloneDeep(battleManager.getCells()))
-    }
-
-    handleMouseOver = (i: number, j: number) => {
-        this.localField.setCell(i, j, ECellType.withShip)
-    }
-
-    handleMouseLeave = () => {
-        this.localField.setCells(cloneDeep(this.battleManager.getCells()))
     }
 
     handleClick = (i: number, j: number) => {
@@ -31,41 +21,33 @@ class BattleScreenStore {
     }
 
     getCells(){
-        return this.localField.getCells()
+        return this.battleManager.getCells()
     }
 }
 
 export const BattleScreen: FC = () => {
     const gameStore = useGameStore()
-    const battleScreenStore = useMemo(() => new BattleScreenStore(gameStore.battleManager), [])
+    const battleScreenStore = useMemo(() => new BattleScreenStore(gameStore.getEnemyShipManager()), [])
     
     const handleClick = useCallback((i: number, j: number) => {
         // TODO check if the cell is empty
-        if(gameStore.isMyTurn()){
+        if(gameStore.isMyTurn){
             battleScreenStore.handleClick(i, j)
-        }
-    }, [])
-
-    const handleMouseOver = useCallback((i: number, j: number) => {
-        if(gameStore.isMyTurn()){
-            battleScreenStore.handleMouseOver(i, j)
         }
     }, [])
 
     return useObserver(() => (
         <>
             <GameStatus 
-                isMyTurn={gameStore.isMyTurn()} 
+                isMyTurn={gameStore.isMyTurn} 
                 winner={gameStore.getWinner()} 
             />
             <GameField>
                 <Field cells={gameStore.getCells()} />
                 <Field
-                    clickable={gameStore.isMyTurn()}
+                    clickable={gameStore.isMyTurn}
                     cells={toJS(battleScreenStore.getCells())}
                     onCellClick={handleClick}
-                    onCellOver={handleMouseOver}
-                    onCellLeave={battleScreenStore.handleMouseLeave}
                 />
             </GameField>
         </>

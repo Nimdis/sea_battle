@@ -22,10 +22,8 @@ class HomeScreenStore {
 
     handleClick = async () => {
         gameStorage.clear()
-        const { playerToken, token } = await newGame()
-        this.setToken(token)
-        gameStorage.setPlayerToken(playerToken)
-        gameStorage.setGameToken(token)
+        await newGame()
+        this.setToken(gameStorage.getGameToken()!)
     }
 }
 

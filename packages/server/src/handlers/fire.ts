@@ -3,13 +3,28 @@ import { RequestHandler } from "express";
 import { IReq } from "../types";
 import { PlayerTurn } from "../entities/PlayerTurn"
 import { CellsStore } from "../entities/CellsStore"
+import { Game } from "../entities/Game"
+import { Player } from "../entities/Player"
 import { ECellType, ECellTurnType } from "../logic/CellsStore";
 
 // req с номером ячейки (i,j) после чего просиходит новый ход + на поле помечается ячейка как та в которую сходили
-export const fire: RequestHandler = async (req: IReq, res) => {
-    const { game, player } = req
-    const i: number = Number(req.body['i'])
-    const j: number = Number(req.body['j'])
+export const fire = async (room, token, playerToken, i, j) => {
+    const game = await Game.findOne({
+        where: {
+            token
+        },
+        relations: ['players']
+    })
+
+    const player = await Player.findOne({
+        where: {
+            playerToken
+        }
+    })
+
+    if(!game || !player){
+        return 
+    }
     const turns = await PlayerTurn.find({
         where: {
             game
@@ -28,27 +43,27 @@ export const fire: RequestHandler = async (req: IReq, res) => {
     })
 
     if(!enemyCells){
-        return res.status(500).send() 
+        return 
     }
 
     if(i > 9 || i < 0 || j > 9 || j < 0){
-        return res.status(400).send()
+        return 
     }
 
     if(turns.length){       
         if(turns[0].player.id === player.id){
-            return res.status(403).send()
+            return 
         }
     } else {
         if(player.id % 2 !== game.numOfFirstPlayer){
-            return res.status(403).send()
+            return 
         }
     }
 
     const { cells } = enemyCells
 
     if(cells[i][j] === ECellType.missed || cells[i][j] === ECellType.hitted){
-        return res.status(400).send()
+        return 
     }
 
     const turn = new PlayerTurn()
@@ -67,7 +82,5 @@ export const fire: RequestHandler = async (req: IReq, res) => {
     await turn.save()
     await enemyCells.save()
 
-    res.json({
-        type: turn.type
-    })
+    room.emit(turn.type, i, j)
 }

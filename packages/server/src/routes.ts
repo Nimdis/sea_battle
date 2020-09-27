@@ -15,7 +15,7 @@ export const routes = (app: Express) => {
     app.post('/new_game', newGame)
 
     gameRouter.get('/turn', turn)
-    gameRouter.post('/fire', fire)
+    //gameRouter.post('/fire', fire)
     gameRouter.get('/ships', ships)
 
     app.use(gameRouter)
