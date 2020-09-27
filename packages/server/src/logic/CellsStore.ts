@@ -1,24 +1,23 @@
-
 export enum ECellType {
     empty,
     withShip,
     missed,
     hitted,
-    killed
+    killed,
 }
 
 export enum ECellTurnType {
     missed,
     hitted,
-    killed
+    killed,
 }
 export type TCells = ECellType[][]
 
 export class CellsStore {
-    private cells: TCells;
+    private cells: TCells
 
     constructor(cells: TCells) {
-        this.cells = cells;
+        this.cells = cells
     }
 
     setCell(i: number, j: number, value: ECellType) {
@@ -30,11 +29,10 @@ export class CellsStore {
     }
 
     getCells() {
-        return this.cells;
+        return this.cells
     }
 
-    setCells(cells: TCells){
+    setCells(cells: TCells) {
         this.cells = cells
     }
-
 }
