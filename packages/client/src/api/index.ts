@@ -33,6 +33,10 @@ export class GameClient {
         this.client.on('online', fn)
     }
 
+    onFire(fn: (i: number, j: number, a: ECellTurnType) => void) {
+        this.client.on("fire", fn)
+    }
+
     onEnemyPlayerOffline(fn: () => void) {
         this.client.on('enemyPlayerOffline', fn)
     }

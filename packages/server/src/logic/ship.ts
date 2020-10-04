@@ -99,8 +99,6 @@ export class ShipManager {
         } else {
             this.currentShip.num += 1
         }
-        // TODO проверить, скорее всего оно нужно
-        //this.drawShip(this.currentShip)
     }
 
     rotateCurrentShip() {
@@ -193,10 +191,10 @@ export class ShipManager {
         return true
     }
 
-    placeCurrentShip() {
-        if (this.testFree(this.currentShip)) {
+    placeShip(ship: Ship) {
+        if (this.testFree(ship)) {
             this.fieldCanvas.cleanUpCells()
-            this.drawShip(this.currentShip)
+            this.drawShip(ship)
             this.fieldCanvas.updateInitialCells()
             this.createNewCurrentShip()
             return true
@@ -226,7 +224,7 @@ export class ShipManager {
                 Math.floor(Math.random() * 10),
                 Math.floor(Math.random() * 10)
             )
-            if (this.placeCurrentShip()) {
+            if (this.placeShip(this.currentShip)) {
                 ships.push(ShipToIShip(this.ships[this.ships.length - 1]))
                 console.log(ShipToIShip(this.ships[this.ships.length - 1]))
                 if (this.ships[this.ships.length - 1].num == 4) {

@@ -4,11 +4,14 @@ import { IReq } from '../types'
 import { PlayerTurn } from '../entities/PlayerTurn'
 import { CellsStore } from '../entities/CellsStore'
 import { Game } from '../entities/Game'
+import { shipsToIShips, Ship } from '../entities/Ship'
 import { Player } from '../entities/Player'
 import { ECellType, ECellTurnType } from '../logic/CellsStore'
+import { ShipManager } from '../logic/ship'
 
 // req с номером ячейки (i,j) после чего просиходит новый ход + на поле помечается ячейка как та в которую сходили
 export const fire = async (room, token, playerToken, i, j) => {
+
     const game = await Game.findOne({
         where: {
             token,
@@ -18,7 +21,7 @@ export const fire = async (room, token, playerToken, i, j) => {
 
     const player = await Player.findOne({
         where: {
-            playerToken,
+            token: playerToken,
         },
     })
 
@@ -62,7 +65,9 @@ export const fire = async (room, token, playerToken, i, j) => {
 
     const { cells } = enemyCells
 
-    if (cells[i][j] === ECellType.missed || cells[i][j] === ECellType.hitted) {
+    if (cells[i][j] === ECellType.missed || 
+        cells[i][j] === ECellType.hitted ||
+        cells[i][j] === ECellType.killed) {
         return
     }
 
@@ -82,5 +87,5 @@ export const fire = async (room, token, playerToken, i, j) => {
     await turn.save()
     await enemyCells.save()
 
-    room.emit(turn.type, i, j)
+    room.emit("fire", i, j, turn.type)
 }

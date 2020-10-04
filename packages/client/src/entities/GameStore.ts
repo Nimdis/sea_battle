@@ -34,26 +34,30 @@ export class GameStoreInitializer {
 
             gameStorage.setPlayerToken(resp.playerToken)
             gameStorage.setGameToken(token)
-
-            const enemyShipManager = await EnemyShipManager.initialize(
+            
+            const enemyShipManager = await EnemyShipManager.initialize( 
                 playerToken ?? resp.playerToken
             )
+
+            const gc = new GameClient(
+                playerToken ?? resp.playerToken,
+                token! //
+            )
+
+            enemyShipManager.gameClient = gc
+
             const shipManager = new ShipManager(
                 CellsStore.makeInitial().getCells()
             )
 
             shipManager.setCells(resp.cells)
-
+            
             const gameStore = new GameStore(
                 phase,
                 enemyShipManager,
                 shipManager
             )
 
-            const gc = new GameClient(
-                playerToken ?? resp.playerToken,
-                gameToken!
-            )
             gc.onOnline((a: any) => {
                 gameStore.setIsEnemyOnline(true)
                 if (gameStore.getPhase() === 'initialization') {
@@ -64,6 +68,10 @@ export class GameStoreInitializer {
             gc.onEnemyPlayerOffline(() => {
                 gameStore.setIsEnemyOnline(false)
             })
+
+            gc.onFire(gameStore.handleFire)
+
+            
 
             return gameStore
         } catch (err) {
@@ -101,7 +109,7 @@ export class GameStore {
         this.phase = phase
         this.enemyShipManager = enemyShipManager
         this.shipManager = shipManager
-        this.isMyTurn = false
+        this.isMyTurn = true
     }
 
     getEnemyShipManager() {
@@ -143,11 +151,13 @@ export class GameStore {
         this.setPhase('game')
     }
 
-    private handleFire = (i: number, j: number, result: ECellTurnType) => {
+    handleFire = (i: number, j: number, result: ECellTurnType) => {
         if (this.isMyTurn) {
+            this.isMyTurn = false
             this.enemyShipManager.setCell(i, j, getECellType(result))
             return
         }
+        this.isMyTurn = true
         this.shipManager.setCell(i, j, getECellType(result))
     }
 

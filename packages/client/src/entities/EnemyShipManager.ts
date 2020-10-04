@@ -5,9 +5,11 @@ import { ECellType, TCells } from './CellsStore'
 
 export class EnemyShipManager {
     private fieldCanvas: FieldCanvas
+    gameClient?: GameClient
 
     constructor() {
         this.fieldCanvas = new FieldCanvas(CellsStore.makeInitial().getCells())
+        //this.gameClient = gameClient
     }
 
     static async initialize(playerToken: string) {
@@ -37,13 +39,13 @@ export class EnemyShipManager {
         this.fieldCanvas.setCell(i, j, value)
     }
 
-    // shot(i: number, j: number) {
-    //     this.gameClient!.fire(i, j)
+    shot(i: number, j: number) {
+        this.gameClient!.fire(i, j)
     // try {
     //     const type = getECellType((await fire(i, j)).type)
     //     this.fieldCanvas.setCell(i, j, type)
     // } catch (error) {
     //     console.log(error)
     // }
-    // }
+    }
 }

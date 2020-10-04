@@ -9,7 +9,22 @@ import {
 } from 'typeorm'
 import { Player } from './Player'
 import { Game } from './Game'
-import { TPosition, TRotation, TShipSize } from '../logic/ship'
+import { TPosition, TRotation, TShipSize, IShip } from '../logic/ship'
+
+export const shipToIShip = (ship: Ship) => {
+    return {size: ship.size,
+            position: ship.position,
+            rotation: ship.rotation,
+            num: 0} as IShip
+}
+
+export const shipsToIShips = (ships: Ship[]) => {
+    const iShips: IShip[] = []
+    for (const ship of ships) {
+        iShips.push(shipToIShip(ship))
+    }
+    return iShips
+}
 
 @Entity()
 export class Ship extends BaseEntity {

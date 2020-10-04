@@ -17,7 +17,7 @@ class BattleScreenStore {
     }
 
     handleClick = (i: number, j: number) => {
-        // this.battleManager.shot(i, j)
+        this.battleManager.shot(i, j)
     }
 
     getCells() {
@@ -34,6 +34,7 @@ export const BattleScreen: FC = () => {
 
     const handleClick = useCallback((i: number, j: number) => {
         // TODO check if the cell is empty
+        console.log(gameStore.isMyTurn)
         if (gameStore.isMyTurn) {
             battleScreenStore.handleClick(i, j)
         }

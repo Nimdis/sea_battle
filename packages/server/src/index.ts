@@ -34,15 +34,16 @@ io.on('connection', (s) => {
         console.log('disconnect')
         s.disconnect()
     }
+    
+    s.join(token) 
 
-    s.join(token, () => {
-        // FIXME
-        if (io.sockets.adapter.rooms[token].length > 2) {
-            s.disconnect()
-        }
+    if (io.sockets.adapter.rooms[token].length > 2) {
+        s.disconnect()
+    }
 
+    if (io.sockets.adapter.rooms[token].length == 2) {
         io.in(token).emit('online', 2)
-    })
+    }
 
     s.on('disconnect', () => {
         console.log('disconnect emit')
@@ -50,8 +51,8 @@ io.on('connection', (s) => {
     })
 
     //s.on('new_game', (token,  playerToken) => newGame(s, io, token, playerToken))
-
-    // s.on('fire', (token, playerToken, i, j) => fire(io.to(token), token, playerToken, i, j ))
+    
+    s.on('fire', (i, j) => fire(io.to(token), token, playerToken, i, j ))
 })
 
 const PORT = 4000
