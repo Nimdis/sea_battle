@@ -39,4 +39,12 @@ export class Game extends BaseEntity {
 
     @OneToMany((type) => PlayerTurn, (turn) => turn.game)
     turns: PlayerTurn[]
+
+    isMyTurn(player: Player, lastTurn: PlayerTurn) {
+        if (this.players.length === 2 && !Boolean(lastTurn)) {
+            return player.id % 2 === this.numOfFirstPlayer
+        } else {
+            return lastTurn.player.id !== player.id
+        }
+    }
 }

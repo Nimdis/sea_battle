@@ -10,6 +10,10 @@ import { routes } from './routes'
 import { newGame } from './handlers/newGame'
 import { fire } from './handlers/fire'
 import { Player } from './entities/Player'
+import { PlayerTurn } from './entities/PlayerTurn'
+import { Game } from './entities/Game'
+import { attachGameIO, attachPlayerIO } from './middlewares'
+import { ISocket } from './types'
 
 const app = server()
 const http = createServer(app)
@@ -18,24 +22,26 @@ const io = socketIO(http)
 app.use(bodyParser.json())
 app.use(cors())
 
-// 1. Connect user
-// 2. Create room for game
-// 3. Connect second user
-// 4. Game
-
 routes(app)
 
-io.on('connection', (s) => {
-    const { token, playerToken } = s.handshake.query
+const findOutPlayerTurn = async (game: Game, player: Player, onSuccess: (isMyTurn: boolean) => void) => {
+    game.token
+    const turns = await PlayerTurn.findTurnsByGame(game)
+    const [playerTurn] = turns
 
-    console.log(token, playerToken)
+    const isMyTurn = game.isMyTurn(player, playerTurn)
+    onSuccess(isMyTurn)
+}
 
-    if (!token || !playerToken) {
-        console.log('disconnect')
-        s.disconnect()
-    }
-    
-    s.join(token) 
+io.use(attachGameIO)
+io.use(attachPlayerIO)
+
+io.on('connection', (s: ISocket) => {
+    const { game, player } = s
+    const { token } = game
+    const { token: playerToken } = player
+
+    s.join(token)
 
     if (io.sockets.adapter.rooms[token].length > 2) {
         s.disconnect()
@@ -43,6 +49,10 @@ io.on('connection', (s) => {
 
     if (io.sockets.adapter.rooms[token].length == 2) {
         io.in(token).emit('online', 2)
+        findOutPlayerTurn(game, player, isMyTurn => {
+            s.to(token).emit('playerTurn', !isMyTurn)
+            s.emit('playerTurn', isMyTurn)
+        })
     }
 
     s.on('disconnect', () => {
@@ -51,8 +61,13 @@ io.on('connection', (s) => {
     })
 
     //s.on('new_game', (token,  playerToken) => newGame(s, io, token, playerToken))
-    
-    s.on('fire', (i, j) => fire(io.to(token), token, playerToken, i, j ))
+
+    s.on('fire', async (i, j) => {
+        const result = await fire(token, playerToken, i, j)
+        if (result) {
+            s.to(token).emit('enemyTurn', result)
+        }
+    })
 })
 
 const PORT = 4000

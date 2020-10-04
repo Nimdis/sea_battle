@@ -1,11 +1,19 @@
 import { RequestHandler } from 'express'
 
-import { IReq } from './types'
+import { IReq, ISocket } from './types'
 import { Game } from './entities/Game'
 import { Player } from './entities/Player'
+import { Socket } from 'socket.io'
 
-export const attachGame: RequestHandler = async (req: IReq, res, next) => {
-    const token = req.headers['x-game']
+const attachGameIsomorphic = async (
+    obj: any,
+    next,
+    onError: () => void,
+    token?: string
+) => {
+    if (!token) {
+        return onError()
+    }
 
     const game = await Game.findOne({
         where: {
@@ -15,28 +23,47 @@ export const attachGame: RequestHandler = async (req: IReq, res, next) => {
     })
 
     if (!game) {
-        return res.status(401).send()
+        return onError()
     }
 
-    req.game = game
+    obj.game = game
     next()
 }
 
-export const attachPlayer: RequestHandler = async (req: IReq, res, next) => {
-    const playerToken = req.headers['x-auth-player']
-    const { game } = req
+export const attachGame: RequestHandler = (req: IReq, res, next) =>
+    attachGameIsomorphic(
+        req,
+        next,
+        () => res.status(401).send(),
+        req.headers['x-game'] as string | undefined
+    )
 
-    if (playerToken) {
+export const attachGameIO = (socket: Socket, next) =>
+    attachGameIsomorphic(
+        socket,
+        next,
+        () => socket.disconnect(),
+        socket.handshake.query.token
+    )
+
+const attachPlayerIsomorphic = async (
+    obj: any,
+    next,
+    onError: () => void,
+    game: Game,
+    token?: string
+) => {
+    if (token) {
         const player = await Player.findOne({
             where: {
-                token: playerToken,
+                token
             },
             relations: ['ships', 'cellsStore'],
         })
         if (!player) {
-            return res.status(401).send()
+            return onError()
         }
-        req.player = player
+        obj.player = player
         next()
         return
     }
@@ -44,7 +71,7 @@ export const attachPlayer: RequestHandler = async (req: IReq, res, next) => {
     const player = new Player()
     player.game = game
     await player.save()
-    req.player = (await Player.findOne({
+    obj.player = (await Player.findOne({
         where: {
             token: player.token,
         },
@@ -52,3 +79,7 @@ export const attachPlayer: RequestHandler = async (req: IReq, res, next) => {
     }))!
     next()
 }
+
+export const attachPlayerIO = (socket: ISocket, next: any) => attachPlayerIsomorphic(socket, next, () => socket.disconnect(), socket.game, socket.handshake.query.playerToken)
+
+export const attachPlayer: RequestHandler = async (req: IReq, res, next) => attachPlayerIsomorphic(req, next, () => res.status(401).send(), req.game, req.headers['x-auth-player'] as string | undefined)

@@ -5,7 +5,6 @@ import {
     PrimaryGeneratedColumn,
     JoinColumn,
     BaseEntity,
-    OneToOne,
     ManyToOne,
 } from 'typeorm'
 
@@ -36,4 +35,17 @@ export class PlayerTurn extends BaseEntity {
 
     @CreateDateColumn()
     createdAt: Date
+
+    static async findTurnsByGame(game: Game, direction: 'DESC' | 'ASC' = 'DESC') {
+        return await PlayerTurn.find({
+            where: {
+                game,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+            relations: ['player'],
+            take: 1
+        })
+    }
 }

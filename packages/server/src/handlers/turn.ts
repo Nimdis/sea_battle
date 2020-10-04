@@ -4,11 +4,14 @@ import diffInSec from 'date-fns/fp/differenceInSeconds'
 import { IReq } from '../types'
 import { PlayerTurn } from '../entities/PlayerTurn'
 import { ECellTurnType } from '../logic/CellsStore'
+import { Player } from '../entities/Player'
 
 export const turn: RequestHandler = async (req: IReq, res) => {
+    // req destruction
     const { game, player } = req
-    let isEnemyOnline = false
 
+    // is enemy online
+    let isEnemyOnline = false
     const [enemyPlayer] = game.players.filter((p) => p.id !== player.id)
     if (enemyPlayer) {
         const diff = diffInSec(enemyPlayer.lastVisitAt, new Date())
@@ -17,29 +20,17 @@ export const turn: RequestHandler = async (req: IReq, res) => {
         }
     }
 
-    const turns = await PlayerTurn.find({
-        where: {
-            game,
-        },
-        order: {
-            createdAt: 'DESC',
-        },
-        relations: ['player'],
-    })
-
+    // request turns form DB
+    const turns = await PlayerTurn.findTurnsByGame(game)
     const [playerTurn] = turns
 
-    let isMyTurn = false
+    const isMyTurn = game.isMyTurn(player, playerTurn)
 
-    if (game.players.length === 2 && !Boolean(playerTurn)) {
-        isMyTurn = player.id % 2 === game.numOfFirstPlayer
-    } else {
-        isMyTurn = Boolean(playerTurn) && playerTurn.player.id !== player.id
-    }
-
+    // update last visit
     player.lastVisitAt = new Date()
     await player.save()
 
+    // calc winner by shots
     let playerShots = 0
     let enemyShots = 0
     for (const turn of turns) {
@@ -52,6 +43,7 @@ export const turn: RequestHandler = async (req: IReq, res) => {
         }
     }
 
+    // send response
     if (playerShots < 20 && enemyShots < 20) {
         res.json({
             isEnemyOnline,

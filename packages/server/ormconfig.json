@@ -6,7 +6,7 @@
    "password": "test",
    "database": "sea_battle",
    "synchronize": true,
-   "logging": false,
+   "logging": true,
    "entities": [
       "src/entities/**/*.ts"
    ],

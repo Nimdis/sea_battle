@@ -10,7 +10,7 @@ import { ECellType, ECellTurnType } from '../logic/CellsStore'
 import { ShipManager } from '../logic/ship'
 
 // req с номером ячейки (i,j) после чего просиходит новый ход + на поле помечается ячейка как та в которую сходили
-export const fire = async (room, token, playerToken, i, j) => {
+export const fire = async (token, playerToken, i, j) => {
 
     const game = await Game.findOne({
         where: {
@@ -87,5 +87,7 @@ export const fire = async (room, token, playerToken, i, j) => {
     await turn.save()
     await enemyCells.save()
 
-    room.emit("fire", i, j, turn.type)
+    return {
+        i, j, type: turn.type
+    }
 }
