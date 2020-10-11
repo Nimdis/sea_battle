@@ -4,10 +4,10 @@ import { IReq } from '../types'
 import { PlayerTurn } from '../entities/PlayerTurn'
 import { CellsStore } from '../entities/CellsStore'
 import { Game } from '../entities/Game'
-import { shipsToIShips, Ship } from '../entities/Ship'
+import { shipToIShip, Ship } from '../entities/Ship'
 import { Player } from '../entities/Player'
 import { ECellType, ECellTurnType } from '../logic/CellsStore'
-import { ShipManager } from '../logic/ship'
+import { ShipManager, IShip, TShipSize } from '../logic/ship'
 
 // req с номером ячейки (i,j) после чего просиходит новый ход + на поле помечается ячейка как та в которую сходили
 export const fire = async (token, playerToken, i, j) => {
@@ -16,7 +16,7 @@ export const fire = async (token, playerToken, i, j) => {
         where: {
             token,
         },
-        relations: ['players'],
+        relations: ['players', 'ships'],
     })
 
     const player = await Player.findOne({
@@ -28,22 +28,26 @@ export const fire = async (token, playerToken, i, j) => {
     if (!game || !player) {
         return
     }
-    const turns = await PlayerTurn.find({
-        where: {
-            game,
-        },
-        order: {
-            createdAt: 'DESC',
-        },
-        relations: ['player'],
-    })
+    const turns = await PlayerTurn.findTurnsByGame(game)
 
-    const enemy = game.players.filter((p) => p.id !== player.id)[0]
+    const enemyToken = game.players.filter((p) => p.id !== player.id)[0].token
+
+    if(!enemyToken){
+        return
+    }
+
+    const enemy = await Player.findOne({
+        where: {
+            token: enemyToken,
+        },
+        relations: ['ships'],
+    })
     const enemyCells = await CellsStore.findOne({
         where: {
             player: enemy,
         },
     })
+    const enemyShips = enemy!.ships
 
     if (!enemyCells) {
         return
@@ -52,17 +56,12 @@ export const fire = async (token, playerToken, i, j) => {
     if (i > 9 || i < 0 || j > 9 || j < 0) {
         return
     }
-
-    if (turns.length) {
-        if (turns[0].player.id === player.id) {
-            return
-        }
-    } else {
-        if (player.id % 2 !== game.numOfFirstPlayer) {
-            return
-        }
+    
+    const [lastTurn] = turns
+    if (!game.isMyTurn(player, lastTurn)) {
+        return
     }
-
+    
     const { cells } = enemyCells
 
     if (cells[i][j] === ECellType.missed || 
@@ -70,24 +69,47 @@ export const fire = async (token, playerToken, i, j) => {
         cells[i][j] === ECellType.killed) {
         return
     }
-
+    
     const turn = new PlayerTurn()
     turn.player = player
     turn.game = game
     turn.position = { i: i, j: j }
-
+    let shipCollision: Ship | undefined;
     if (cells[i][j] === ECellType.withShip) {
-        enemyCells.cells[i][j] = ECellType.hitted
-        turn.type = ECellTurnType.hitted
+        for(const ship of enemyShips){
+            if (ship.position.i > i || ship.position.j > j) {
+                continue
+            }
+
+            if (ship.position.i + ship.size * (1 - ship.rotation) < i || 
+                ship.position.j + ship.size * ship.rotation < j) {
+                continue
+            }
+
+            shipCollision = ship
+
+        }
+        
+        shipCollision!.health -= 1 
+        await shipCollision!.save()
+
+        if(shipCollision!.health == 0){
+            turn.type = ECellTurnType.killed
+            enemyCells.cells[i][j] = ECellType.killed
+        } else {
+            turn.type = ECellTurnType.hitted
+            enemyCells.cells[i][j] = ECellType.hitted
+        }
+        
     } else {
         enemyCells.cells[i][j] = ECellType.missed
         turn.type = ECellTurnType.missed
     }
-
+   
     await turn.save()
     await enemyCells.save()
 
     return {
-        i, j, type: turn.type
+        i, j, type: turn.type, ship: shipCollision
     }
 }

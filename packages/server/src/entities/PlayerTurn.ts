@@ -45,7 +45,7 @@ export class PlayerTurn extends BaseEntity {
                 createdAt: 'DESC',
             },
             relations: ['player'],
-            take: 1
+            //take: 1
         })
     }
 }

@@ -27,9 +27,11 @@ export class ShipManager {
     private fieldCanvas: FieldCanvas
     private currentShip?: Ship
     private prevShip?: Ship
+    private ships: Ship[]
 
     constructor(cells: TCells) {
         this.fieldCanvas = new FieldCanvas(cells)
+        this.ships = []
     }
 
     getCells() {
@@ -90,14 +92,14 @@ export class ShipManager {
         }
     }
 
-    addShipByPosition(i: number, j: number) {
-        if (this.currentShip && this.currentShip.isCanPlace) {
-            this.prevShip = this.currentShip
-            // TODO проверить нужно ли оно тут
-            this.fieldCanvas.updateInitialCells()
-            this.createShipByPosition(i, j)
-        }
-    }
+    //addShipByPosition(i: number, j: number) {
+    //    if (this.currentShip && this.currentShip.isCanPlace) {
+    //        this.prevShip = this.currentShip
+    //        // TODO проверить нужно ли оно тут
+    //        this.fieldCanvas.updateInitialCells()
+    //        this.createShipByPosition(i, j)
+    //    }
+    //}
 
     rotateCurrentShip() {
         if (this.currentShip) {
@@ -110,70 +112,100 @@ export class ShipManager {
     placeShips(ships: IShip[]) {
         for (const ship of ships) {
             if (this.drawShip(new Ship(ship))) {
+                this.ships.push(new Ship(ship))
                 this.fieldCanvas.updateInitialCells()
             }
         }
     }
 
-    private testFree(field: TCells, i: number, j: number): boolean {
-        for (let x = i === 0 ? 0 : -1; x < 2 - Math.floor(i / 9); x++) {
-            for (let y = j === 0 ? 0 : -1; y < 2 - Math.floor(j / 9); y++) {
-                if (field[i + x][j + y] === ECellType.withShip) {
-                    return false
-                }
-            }
-        }
-        return true
+    
+    //private getShift(ship: Ship) {
+    //    if (!ship) {
+    //        return 0
+    //    }
+    //    const { size, rotation, position } = ship!
+    //    if (!position) {
+    //        return 0
+    //    }
+    //    const i: number = position.i
+    //    const j: number = position.j
+    //    const shift: number = Math.max(
+    //        i * (1 - rotation) + j * rotation + size - 10,
+    //        0
+    //    )
+    //    return shift
+    //}
+
+    //private getMinPoint(ship: Ship) {
+    //    return -this.getShift(ship)
+    //}
+
+    //private centredPosToCommon(ship: Ship) {
+    //    if(!ship.position){
+    //        throw "Error";
+    //        
+    //    }
+    //    const i = this.getMinPoint(ship) * (1 - ship.rotation) + ship.position.i
+    //    const j = this.getMinPoint(ship) * ship.rotation + ship.position.j
+    //    return {
+    //        i: i,
+    //        j: j,
+    //    }
+    //}
+
+    private checkCollision(ship1: Ship, ship2: Ship): boolean {
+        const i1 = ship1.position!.i - 1
+        const j1 = ship1.position!.j - 1
+        const i2 = ship2.position!.i - 1
+        const j2 = ship2.position!.j - 1
+
+        const j = j1 - j2
+        const i = i1 - i2
+
+        return (
+            ((j >= 0 && Math.abs(j) <= (ship2.size - 1) * ship2.rotation + 1) ||
+                (j < 0 &&
+                    Math.abs(j) <= (ship1.size - 1) * ship1.rotation + 1)) &&
+            ((i >= 0 &&
+                Math.abs(i) <= (ship2.size - 1) * (1 - ship2.rotation) + 1) ||
+                (i < 0 &&
+                    Math.abs(i) <= (ship1.size - 1) * (1 - ship1.rotation) + 1))
+        )
     }
 
+    private testFree(ship: Ship): boolean {
+        if (!ship || !ship.position) {
+            return false
+        }
+
+        for (const ship1 of this.ships) {
+            if (this.checkCollision(ship1, ship)) {
+                return false
+            }
+        }
+
+        return true
+    }
+    
     // TODO refactoring required
     private drawShip(ship: Ship) {
-        this.fieldCanvas.cleanUpCells()
-        if (!ship) {
-            return false
-        }
         const { size, rotation, position } = ship!
-        if (!position) {
-            return false
-        }
-        ship.isCanPlace = true
-        const i: number = position.i
-        const j: number = position.j
-        const shift: number = Math.max(
-            i * (1 - rotation) + j * rotation + size - 10,
-            0
-        )
-        const minPoint: number = 0 - shift
-        const maxPoint: number = size - shift
-        for (let k = minPoint; k < maxPoint; k++) {
+        const i: number = position!.i
+        const j: number = position!.j
+        for (let k = 0; k < ship.size; k++) {
             const currentPoint: TPosition = {
                 i: 0,
                 j: 0,
             }
             currentPoint.i = i + k * (1 - rotation)
             currentPoint.j = j + k * rotation
-            if (
-                this.testFree(
-                    this.fieldCanvas.initialCells,
-                    currentPoint.i,
-                    currentPoint.j
-                )
-            ) {
-                this.fieldCanvas.setCell(
-                    currentPoint.i,
-                    currentPoint.j,
-                    ECellType.withShip
-                )
-            } else {
-                this.fieldCanvas.setCell(
-                    currentPoint.i,
-                    currentPoint.j,
-                    ECellType.hitted
-                )
-                ship.isCanPlace = false
-            }
+            this.fieldCanvas.setCell(
+                currentPoint.i,
+                currentPoint.j,
+                ECellType.withShip
+            )
         }
-        return ship.isCanPlace
+        return true
     }
 }
 

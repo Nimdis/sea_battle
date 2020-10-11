@@ -25,10 +25,9 @@ app.use(cors())
 routes(app)
 
 const findOutPlayerTurn = async (game: Game, player: Player, onSuccess: (isMyTurn: boolean) => void) => {
-    game.token
+    //game.token
     const turns = await PlayerTurn.findTurnsByGame(game)
     const [playerTurn] = turns
-
     const isMyTurn = game.isMyTurn(player, playerTurn)
     onSuccess(isMyTurn)
 }
@@ -50,6 +49,7 @@ io.on('connection', (s: ISocket) => {
     if (io.sockets.adapter.rooms[token].length == 2) {
         io.in(token).emit('online', 2)
         findOutPlayerTurn(game, player, isMyTurn => {
+            console.log(isMyTurn)
             s.to(token).emit('playerTurn', !isMyTurn)
             s.emit('playerTurn', isMyTurn)
         })
@@ -66,6 +66,7 @@ io.on('connection', (s: ISocket) => {
         const result = await fire(token, playerToken, i, j)
         if (result) {
             s.to(token).emit('enemyTurn', result)
+            s.emit('turnResult', result)
         }
     })
 })

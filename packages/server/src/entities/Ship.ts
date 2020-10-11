@@ -47,6 +47,9 @@ export class Ship extends BaseEntity {
 
     @Column({ type: 'json' })
     rotation: TRotation
+
+    @Column()
+    health: number
 }
 
 export const buildInsert = async (ships: Ship[]): Promise<Ship[]> => {

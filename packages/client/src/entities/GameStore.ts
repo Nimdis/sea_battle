@@ -1,11 +1,11 @@
 import { observable, action } from 'mobx'
 
 import { gameStorage } from '../GameStorage'
-import { getShips, turn, ITurnResp, GameClient } from '../api'
+import { getShips, ITurnResp, GameClient } from '../api'
 
 import { CellsStore, getECellType, ECellTurnType } from './CellsStore'
 import { EnemyShipManager } from './EnemyShipManager'
-import { ShipManager } from './ShipManager'
+import { ShipManager, IShip } from './ShipManager'
 
 // https://socket.io/docs/rooms/#Joining-and-leaving
 // Передавать 2 токена когда сокет коннектится (токен игры и юзера)
@@ -72,6 +72,8 @@ export class GameStoreInitializer {
             gc.onEnemyTurn(gameStore.handleEnemyTurn)
 
             gc.onPlayerTurn(gameStore.handlePlayerTurn)
+
+            gc.onTurnResult(gameStore.handleTurnResult)
 
             return gameStore
         } catch (err) {
@@ -156,37 +158,33 @@ export class GameStore {
         this.isMyTurn = isMyTurn
     }
 
-    handleEnemyTurn = ({
+    handleTurnResult = ({
         i,
         j,
         type,
+        ship,
     }: {
         i: number
         j: number
         type: ECellTurnType
+        ship: IShip | undefined
     }) => {
-        // if (this.isMyTurn) {
-        //     this.isMyTurn = false
-        //     this.enemyShipManager.setCell(i, j, getECellType(type))
-        //     return
-        // }
-        this.isMyTurn = true
-        this.shipManager.setCell(i, j, getECellType(type))
+        this.isMyTurn = false
+        this.enemyShipManager.setCell(i, j, getECellType(type))
     }
 
-    private handleEnemyOnline = async () => {
-        if (this.phase === 'initialization') {
-            this.setPhase('game')
-        }
-        const turns = (await turn()).turns.filter(
-            (turn) => turn.player.token !== gameStorage.getPlayerToken()
-        )
-        for (const turn of turns) {
-            this.enemyShipManager.setCell(
-                turn.position.i,
-                turn.position.j,
-                getECellType(turn.type)
-            )
-        }
+    handleEnemyTurn = ({
+        i,
+        j,
+        type,
+        ship,
+    }: {
+        i: number
+        j: number
+        type: ECellTurnType
+        ship: IShip | undefined
+    }) => {
+        this.isMyTurn = true
+        this.shipManager.setCell(i, j, getECellType(type))
     }
 }

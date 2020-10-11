@@ -56,8 +56,6 @@ export const Field: FC<IFieldProps> = ({
                                   type={type}
                                   key={`${i}-${j}`}
                                   onClick={handleCellClick(i, j)}
-                                  // onMouseOver={handleCellOver(i, j)}
-                                  // onMouseLeave={onCellLeave}
                               />
                           ))}
                       </Row>

@@ -2,7 +2,7 @@ import { RequestHandler } from 'express'
 
 import { IReq } from '../types'
 import { IShip, ShipManager } from '../logic/ship'
-import { Ship, buildInsert } from '../entities/Ship'
+import { Ship, buildInsert, shipsToIShips } from '../entities/Ship'
 import { CellsStore } from '../entities/CellsStore'
 
 export const ships: RequestHandler = async (req: IReq, res) => {
@@ -31,6 +31,7 @@ export const ships: RequestHandler = async (req: IReq, res) => {
             position: ship.position,
             rotation: ship.rotation,
             size: ship.size,
+            health: ship.size as number,
         })
     })
 
@@ -43,7 +44,7 @@ export const ships: RequestHandler = async (req: IReq, res) => {
     const shipsFromDb = await buildInsert(shipsToInsert)
 
     res.json({
-        ships: shipsFromDb,
+        ships: shipsToIShips(shipsFromDb),
         cells: cellsStore.cells,
         playerToken: player.token,
     })

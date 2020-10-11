@@ -33,7 +33,7 @@ export class GameClient {
         this.client.on('online', fn)
     }
 
-    onEnemyTurn(fn: (resp: { i: number, j: number, type: ECellTurnType }) => void) {
+    onEnemyTurn(fn: (resp: { i: number, j: number, type: ECellTurnType, ship: IShip | undefined }) => void) {
         this.client.on('enemyTurn', fn)
     }
 
@@ -45,7 +45,12 @@ export class GameClient {
         this.client.on('playerTurn', fn)
     }
 
+    onTurnResult(fn: (resp: { i: number, j: number, type: ECellTurnType, ship: IShip | undefined }) => void){
+        this.client.on('turnResult', fn)
+    }
+
     fire(i: number, j: number) {
+        console.log("fire")
         this.client.emit('fire', i, j)
     }
 }

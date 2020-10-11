@@ -41,10 +41,16 @@ export class Game extends BaseEntity {
     turns: PlayerTurn[]
 
     isMyTurn(player: Player, lastTurn: PlayerTurn) {
-        if (this.players.length === 2 && !Boolean(lastTurn)) {
-            return player.id % 2 === this.numOfFirstPlayer
-        } else {
-            return lastTurn.player.id !== player.id
+        if (this.players.length === 2) {
+            if (!lastTurn) {
+                if(this.numOfFirstPlayer === 1){
+                    return player.id > this.players[0].id || player.id > this.players[1].id
+                }
+                return player.id < this.players[0].id || player.id < this.players[1].id
+            } else {
+                return lastTurn.player.id !== player.id
+            }
         }
+        return false
     }
 }

@@ -105,46 +105,49 @@ export class ShipManager {
         this.currentShip.rotate()
     }
 
-    private getShift(ship: Ship) {
-        if (!ship) {
-            return 0
-        }
-        const { size, rotation, position } = ship!
-        if (!position) {
-            return 0
-        }
-        const i: number = position.i
-        const j: number = position.j
-        const shift: number = Math.max(
-            i * (1 - rotation) + j * rotation + size - 10,
-            0
-        )
-        return shift
-    }
+    //private getShift(ship: Ship) {
+    //    if (!ship) {
+    //        return 0
+    //    }
+    //    const { size, rotation, position } = ship!
+    //    if (!position) {
+    //        return 0
+    //    }
+    //    const i: number = position.i
+    //    const j: number = position.j
+    //    const shift: number = Math.max(
+    //        i * (1 - rotation) + j * rotation + size - 10,
+    //        0
+    //    )
+    //    return shift
+    //}
 
-    private getMinPoint(ship: Ship) {
-        return -this.getShift(ship)
-    }
+    //private getMinPoint(ship: Ship) {
+    //    return -this.getShift(ship)
+    //}
 
-    private getMaxPoint(ship: Ship) {
-        return ship.size - this.getShift(ship)
-    }
+    //private centredPosToCommon(ship: Ship) {
+    //    if(!ship.position){
+    //        throw "Error";
+    //        
+    //    }
+    //    const i = this.getMinPoint(ship) * (1 - ship.rotation) + ship.position.i
+    //    const j = this.getMinPoint(ship) * ship.rotation + ship.position.j
+    //    return {
+    //        i: i,
+    //        j: j,
+    //    }
+    //}
 
     private checkCollision(ship1: Ship, ship2: Ship): boolean {
-        const i1 =
-            this.getMinPoint(ship1) * (1 - ship1.rotation) +
-            ship1.position!.i -
-            1
-        const j1 =
-            this.getMinPoint(ship1) * ship1.rotation + ship1.position!.j - 1
-        const i2 =
-            this.getMinPoint(ship2) * (1 - ship2.rotation) +
-            ship2.position!.i -
-            1
-        const j2 =
-            this.getMinPoint(ship2) * ship2.rotation + ship2.position!.j - 1
+        const i1 = ship1.position!.i - 1
+        const j1 = ship1.position!.j - 1
+        const i2 = ship2.position!.i - 1
+        const j2 = ship2.position!.j - 1
+
         const j = j1 - j2
         const i = i1 - i2
+
         return (
             ((j >= 0 && Math.abs(j) <= (ship2.size - 1) * ship2.rotation + 1) ||
                 (j < 0 &&
@@ -158,6 +161,11 @@ export class ShipManager {
 
     private testFree(ship: Ship): boolean {
         if (!ship || !ship.position) {
+            return false
+        }
+
+        if (ship.position.i + ship.size * (1 - ship.rotation) > 9 ||
+            ship.position.j + ship.size * ship.rotation > 9) {
             return false
         }
 
@@ -175,7 +183,7 @@ export class ShipManager {
         const { size, rotation, position } = ship!
         const i: number = position!.i
         const j: number = position!.j
-        for (let k = this.getMinPoint(ship); k < this.getMaxPoint(ship); k++) {
+        for (let k = 0; k < ship.size; k++) {
             const currentPoint: TPosition = {
                 i: 0,
                 j: 0,
