@@ -75,6 +75,7 @@ export const fire = async (token, playerToken, i, j) => {
     turn.game = game
     turn.position = { i: i, j: j }
     let shipCollision: Ship | undefined;
+
     if (cells[i][j] === ECellType.withShip) {
         for(const ship of enemyShips){
             if (ship.position.i > i || ship.position.j > j) {
@@ -93,7 +94,7 @@ export const fire = async (token, playerToken, i, j) => {
         shipCollision!.health -= 1 
         await shipCollision!.save()
 
-        if(shipCollision!.health == 0){
+        if(shipCollision!.health === 0){
             turn.type = ECellTurnType.killed
             enemyCells.cells[i][j] = ECellType.killed
         } else {
