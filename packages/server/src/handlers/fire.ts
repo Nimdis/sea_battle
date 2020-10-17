@@ -7,7 +7,7 @@ import { Game } from '../entities/Game'
 import { shipToIShip, Ship } from '../entities/Ship'
 import { Player } from '../entities/Player'
 import { ECellType, ECellTurnType } from '../logic/CellsStore'
-import { ShipManager, IShip, TShipSize } from '../logic/ship'
+import { ShipManager, IShip, TShipSize, TPosition } from '../logic/ship'
 
 // req с номером ячейки (i,j) после чего просиходит новый ход + на поле помечается ячейка как та в которую сходили
 export const fire = async (token, playerToken, i, j) => {
@@ -56,20 +56,20 @@ export const fire = async (token, playerToken, i, j) => {
     if (i > 9 || i < 0 || j > 9 || j < 0) {
         return
     }
-    
+     
     const [lastTurn] = turns
     if (!game.isMyTurn(player, lastTurn)) {
         return
     }
     
     const { cells } = enemyCells
-
+   
     if (cells[i][j] === ECellType.missed || 
         cells[i][j] === ECellType.hitted ||
         cells[i][j] === ECellType.killed) {
         return
     }
-    
+
     const turn = new PlayerTurn()
     turn.player = player
     turn.game = game
@@ -92,10 +92,28 @@ export const fire = async (token, playerToken, i, j) => {
         
         shipCollision!.health -= 1 
         await shipCollision!.save()
-
+        
         if(shipCollision!.health == 0){
+            for (let k = 0; k < shipCollision!.size; k++) {
+                const currentPoint: TPosition = {
+                    i: 0,
+                    j: 0,
+                }
+                currentPoint.i = shipCollision!.position.i + k * (1 - shipCollision!.rotation)
+                currentPoint.j = shipCollision!.position.j + k * shipCollision!.rotation
+                enemyCells.cells[currentPoint.i][currentPoint.j] = ECellType.killed
+                const oldTurn: PlayerTurn = turns.filter((t) => 
+                    t.player.id === player.id && 
+                    t.position.i === currentPoint.i &&
+                    t.position.j === currentPoint.j)[0]
+                if(!oldTurn){
+                    continue
+                }
+                oldTurn.type = ECellTurnType.killed
+                
+                await oldTurn.save()
+            }
             turn.type = ECellTurnType.killed
-            enemyCells.cells[i][j] = ECellType.killed
         } else {
             turn.type = ECellTurnType.hitted
             enemyCells.cells[i][j] = ECellType.hitted
@@ -105,11 +123,16 @@ export const fire = async (token, playerToken, i, j) => {
         enemyCells.cells[i][j] = ECellType.missed
         turn.type = ECellTurnType.missed
     }
-   
+    
     await turn.save()
     await enemyCells.save()
-
-    return {
-        i, j, type: turn.type, ship: shipCollision
+    if(turn.type === ECellTurnType.killed){
+        return {
+            i, j, type: turn.type, ship: shipCollision
+        }
     }
+    return {
+        i, j, type: turn.type
+    }
+
 }

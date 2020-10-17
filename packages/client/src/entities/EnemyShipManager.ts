@@ -2,6 +2,7 @@ import { FieldCanvas } from './FieldStore'
 import { GameClient, turn as getTurns } from '../api/index'
 import { CellsStore, getECellType } from './CellsStore'
 import { ECellType, TCells } from './CellsStore'
+import { IShip, TPosition } from './ShipManager'
 
 export class EnemyShipManager {
     private fieldCanvas: FieldCanvas
@@ -29,6 +30,26 @@ export class EnemyShipManager {
 
     getCells() {
         return this.fieldCanvas.getCells()
+    }
+
+    drawKilledShip(ship: IShip){
+        const { size, rotation, position } = ship!
+        const i: number = position!.i
+        const j: number = position!.j
+        for (let k = 0; k < size; k++) {
+            const currentPoint: TPosition = {
+                i: 0,
+                j: 0,
+            }
+            currentPoint.i = i + k * (1 - rotation)
+            currentPoint.j = j + k * rotation
+            this.fieldCanvas.setCell(
+                currentPoint.i,
+                currentPoint.j,
+                ECellType.killed
+            )
+        }
+        return true
     }
 
     setCells(cells: TCells) {
