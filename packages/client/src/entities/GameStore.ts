@@ -171,6 +171,9 @@ export class GameStore {
     }) => {
         this.isMyTurn = false
         this.enemyShipManager.setCell(i, j, getECellType(type))
+        if(ship){
+            this.enemyShipManager.drawKilledShip(ship)
+        }
     }
 
     handleEnemyTurn = ({
@@ -186,5 +189,8 @@ export class GameStore {
     }) => {
         this.isMyTurn = true
         this.shipManager.setCell(i, j, getECellType(type))
+        if(ship){
+            this.shipManager.drawKilledShip(ship)
+        }
     }
 }

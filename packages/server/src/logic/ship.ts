@@ -105,40 +105,6 @@ export class ShipManager {
         this.currentShip.rotate()
     }
 
-    //private getShift(ship: Ship) {
-    //    if (!ship) {
-    //        return 0
-    //    }
-    //    const { size, rotation, position } = ship!
-    //    if (!position) {
-    //        return 0
-    //    }
-    //    const i: number = position.i
-    //    const j: number = position.j
-    //    const shift: number = Math.max(
-    //        i * (1 - rotation) + j * rotation + size - 10,
-    //        0
-    //    )
-    //    return shift
-    //}
-
-    //private getMinPoint(ship: Ship) {
-    //    return -this.getShift(ship)
-    //}
-
-    //private centredPosToCommon(ship: Ship) {
-    //    if(!ship.position){
-    //        throw "Error";
-    //        
-    //    }
-    //    const i = this.getMinPoint(ship) * (1 - ship.rotation) + ship.position.i
-    //    const j = this.getMinPoint(ship) * ship.rotation + ship.position.j
-    //    return {
-    //        i: i,
-    //        j: j,
-    //    }
-    //}
-
     private checkCollision(ship1: Ship, ship2: Ship): boolean {
         const i1 = ship1.position!.i - 1
         const j1 = ship1.position!.j - 1

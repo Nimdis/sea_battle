@@ -75,7 +75,7 @@ export class ShipManager {
             }
         }
         this.currentShip = new Ship(shipDescr)
-        this.drawShip(this.currentShip)
+        this.drawShip(this.currentShip, ECellType.withShip)
     }
 
     leaveCurrentShip() {
@@ -88,7 +88,7 @@ export class ShipManager {
     updateCurrentShipPosition(i: number, j: number) {
         if (this.currentShip) {
             this.currentShip.position = { i, j }
-            this.drawShip(this.currentShip)
+            this.drawShip(this.currentShip, ECellType.withShip)
         }
     }
 
@@ -105,13 +105,13 @@ export class ShipManager {
         if (this.currentShip) {
             this.currentShip.rotate()
             this.fieldCanvas.cleanUpCells()
-            this.drawShip(this.currentShip)
+            this.drawShip(this.currentShip, ECellType.withShip)
         }
     }
 
     placeShips(ships: IShip[]) {
         for (const ship of ships) {
-            if (this.drawShip(new Ship(ship))) {
+            if (this.drawShip(new Ship(ship), ECellType.withShip)) {
                 this.ships.push(new Ship(ship))
                 this.fieldCanvas.updateInitialCells()
             }
@@ -187,12 +187,15 @@ export class ShipManager {
         return true
     }
     
-    // TODO refactoring required
-    private drawShip(ship: Ship) {
+    drawKilledShip(ship: IShip){
+        this.drawShip(new Ship(ship), ECellType.killed)
+    }
+    
+    private drawShip(ship: Ship, color: ECellType) {
         const { size, rotation, position } = ship!
         const i: number = position!.i
         const j: number = position!.j
-        for (let k = 0; k < ship.size; k++) {
+        for (let k = 0; k < size; k++) {
             const currentPoint: TPosition = {
                 i: 0,
                 j: 0,
@@ -202,7 +205,7 @@ export class ShipManager {
             this.fieldCanvas.setCell(
                 currentPoint.i,
                 currentPoint.j,
-                ECellType.withShip
+                color
             )
         }
         return true
